@@ -91,6 +91,19 @@ The agent appears ONLINE within a few seconds — no Monitor `.env` edit, no res
 
 ---
 
+## Upgrades from v1.x
+
+v2.0 is a **hard cut**:
+
+1. Upgrade Monitor (new Compose publishes `:50051` TLS; generate `certs/`)
+2. Reinstall each agent with `--monitor`, `--token`, and `--ca`
+3. Remove old agent firewall allows for inbound `:50051`
+4. Delete any leftover `AGENTS=` from `.env`
+
+Registered hosts can later reconnect without a new token (TLS + `serverId`).
+
+---
+
 ## Firewall
 
 | Host | Rule |
