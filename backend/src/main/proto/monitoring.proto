@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package pulsegrid.v1;
+
+option go_package = "github.com/pulsegrid/agent/internal/pb";
+option java_multiple_files = true;
+option java_package = "com.monitoring.backend.grpc.gen";
+option java_outer_classname = "MonitoringProto";
+
+service PulsegridService {
+  rpc GetMetrics(MetricsRequest) returns (MetricsEnvelope);
+  rpc StreamMetrics(MetricsRequest) returns (stream MetricsEnvelope);
+  rpc HealthCheck(HealthRequest) returns (HealthResponse);
+}
+
+message MetricsRequest {}
+
+message HealthRequest {}
+
+message HealthResponse {
+  // OK | NOT_READY
+  string status = 1;
+  string message = 2;
+}
+
+message HostInfo {
+  string hostname = 1;
+  string os = 2;
+  string arch = 3;
+  string platform = 4;
+}
+
+message AgentInfo {
+  string version = 1;
+  string go_version = 2;
+  int64 started_at_unix_ms = 3;
+  uint64 samples_sent = 4;
+}
+
+message CpuMetrics {
+  double usage_percent = 1;
+  uint32 logical_cores = 2;
+  double load1 = 3;
+  double load5 = 4;
+  double load15 = 5;
+  // Per logical core utilization (0–100), same order as gopsutil percpu.
+  repeated double per_core_percent = 6;
+}
+
+message MemoryMetrics {
+  double total_mb = 1;
+  double used_mb = 2;
+  double available_mb = 3;
+  double cached_mb = 4;
+  double swap_total_mb = 5;
+  double swap_used_mb = 6;
+}
+
+message DiskMetrics {
+  string mount = 1;
+  string device = 2;
+  double used_gb = 3;
+  double total_gb = 4;
+  double read_bytes_per_sec = 5;
+  double write_bytes_per_sec = 6;
+  double read_ops_per_sec = 7;
+  double write_ops_per_sec = 8;
+}
+
+message NetworkMetrics {
+  string interface_name = 1;
+  double rx_bytes_per_sec = 2;
+  double tx_bytes_per_sec = 3;
+  double rx_packets_per_sec = 4;
+  double tx_packets_per_sec = 5;
+  uint64 rx_errors = 6;
+  uint64 tx_errors = 7;
+  uint64 rx_dropped = 8;
+  uint64 tx_dropped = 9;
+  uint64 rx_bytes_total = 10;
+  uint64 tx_bytes_total = 11;
+}
+
+message ProcessMetrics {
+  int32 pid = 1;
+  string name = 2;
+  double cpu_percent = 3;
+  double memory_mb = 4;
+}
+
+message MetricsEnvelope {
+  string server_id = 1;
+  int64 collected_at_unix_ms = 2;
+  uint64 sequence = 3;
+  HostInfo host = 4;
+  CpuMetrics cpu = 5;
+  MemoryMetrics memory = 6;
+  repeated DiskMetrics disks = 7;
+  repeated NetworkMetrics networks = 8;
+  repeated ProcessMetrics top_processes = 9;
+  AgentInfo agent = 10;
+}

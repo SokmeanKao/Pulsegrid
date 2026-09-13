@@ -1,0 +1,16 @@
+.tools/
+**/bin/
+**/dist/
+**/.gradle/
+**/build/
+**/node_modules/
+**/.next/
+**/.idea/
+**/*.iml
+**/.DS_Store
+*.log
+.env
+.env.local
+linux-kali.txt
+*credentials*
+*passwd*
