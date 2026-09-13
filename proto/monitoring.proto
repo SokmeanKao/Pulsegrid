@@ -86,6 +86,29 @@ message ProcessMetrics {
   string name = 2;
   double cpu_percent = 3;
   double memory_mb = 4;
+  int32 ppid = 5;
+  string user = 6;
+  // RUNNING | SLEEPING | ZOMBIE | STOPPED | IDLE | UNKNOWN
+  string state = 7;
+  uint32 thread_count = 8;
+  uint64 rss_bytes = 9;
+  uint64 vms_bytes = 10;
+  double read_bytes_per_sec = 11;
+  double write_bytes_per_sec = 12;
+  int64 start_time_unix_ms = 13;
+  // Truncated cmdline for stream (full command via GetProcessDetails later).
+  string command = 14;
+}
+
+message ProcessSummary {
+  uint32 total = 1;
+  uint32 running = 2;
+  uint32 sleeping = 3;
+  uint32 zombie = 4;
+  uint32 stopped = 5;
+  uint32 idle = 6;
+  uint32 other = 7;
+  uint32 threads = 8;
 }
 
 message MetricsEnvelope {
@@ -99,4 +122,5 @@ message MetricsEnvelope {
   repeated NetworkMetrics networks = 8;
   repeated ProcessMetrics top_processes = 9;
   AgentInfo agent = 10;
+  ProcessSummary process_summary = 11;
 }

@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+/* Light (default for :root when not .dark) — semantic Pulsegrid tokens */
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 222 47% 11%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 222 47% 11%;
+  --radius: 0.75rem;
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  --font-ui: var(--font-maven), "Maven Pro", system-ui, sans-serif;
+
+  --pg-background: #ffffff;
+  --pg-panel: #f8fafc;
+  --pg-border: #e2e8f0;
+  --pg-text: #0f172a;
+  --pg-muted: #64748b;
+  --pg-grid: #e5e7eb;
+  --pg-tooltip: #ffffff;
+
+  --t-bg: var(--pg-background);
+  --t-panel: var(--pg-panel);
+  --t-border: var(--pg-border);
+  --t-text: var(--pg-text);
+  --t-muted: var(--pg-muted);
+  --t-healthy: #059669;
+  --t-warning: #d97706;
+  --t-critical: #dc2626;
+  --t-info: #0284c8;
+}
+
+.dark {
+  --background: 210 20% 4%;
+  --foreground: 200 10% 88%;
+  --card: 210 18% 7%;
+  --card-foreground: 200 10% 88%;
+  --popover: 210 18% 7%;
+  --popover-foreground: 200 10% 88%;
+  --primary: 199 100% 70%;
+  --primary-foreground: 210 20% 4%;
+  --secondary: 210 15% 12%;
+  --secondary-foreground: 200 10% 88%;
+  --muted: 210 15% 12%;
+  --muted-foreground: 200 8% 55%;
+  --accent: 210 15% 12%;
+  --accent-foreground: 200 10% 88%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 200 10% 18%;
+  --input: 200 10% 18%;
+  --ring: 199 100% 70%;
+
+  --pg-background: #05080a;
+  --pg-panel: #070b0d;
+  --pg-border: #2a3639;
+  --pg-text: #d6e2e3;
+  --pg-muted: #6e8387;
+  --pg-grid: #172024;
+  --pg-tooltip: #0b1114;
+
+  --t-bg: var(--pg-background);
+  --t-panel: var(--pg-panel);
+  --t-border: var(--pg-border);
+  --t-text: var(--pg-text);
+  --t-muted: var(--pg-muted);
+  --t-healthy: #3dd68c;
+  --t-warning: #f5c542;
+  --t-critical: #ff5c5c;
+  --t-info: #5cc8ff;
+}
+
+html[data-locale="km"] {
+  --font-ui: var(--font-noto-khmer), "Noto Sans Khmer", var(--font-maven),
+    sans-serif;
+}
+
+html[data-locale="ko"] {
+  --font-ui: var(--font-noto-kr), "Noto Sans KR", var(--font-maven), sans-serif;
+}
+
+html[data-locale="en"] {
+  --font-ui: var(--font-maven), "Maven Pro", system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-jetbrains);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-lg: var(--radius);
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-ui);
+}
+
+.terminal-root {
+  font-family: var(--font-ui);
+}
+
+.metric-value,
+.pid,
+.ip-address,
+.command,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* GridStack: keep panels flush in both modes */
+.grid-stack > .grid-stack-item > .grid-stack-item-content {
+  inset: 4px !important;
+  overflow: auto !important;
+}
+
+.grid-stack--locked > .grid-stack-item > .ui-resizable-handle {
+  display: none !important;
+}
+
+.grid-stack--editing > .grid-stack-item > .grid-stack-item-content {
+  cursor: grab;
+}
+.grid-stack--editing > .grid-stack-item.ui-draggable-dragging > .grid-stack-item-content {
+  cursor: grabbing;
+}

@@ -4,6 +4,17 @@ Live fleet metrics: **agents on each host** → gRPC → **Monitor** (Spring Boo
 
 **Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md)
 
+![Pulsegrid terminal dashboard](docs/images/dashboard-terminal.png)
+
+## What's new in v1.3.0
+
+- **Terminal dashboard** with GridStack widgets, Lucide icons, and live ECharts
+- **Layout profiles** — Compact / Normal / Show More (one-click resize for the whole board)
+- **Per-widget fullscreen** for deep inspection
+- **Per-server dashboards** saved in the browser (presets + Add Widget)
+- **Theme + locale** preferences (en / km / ko)
+- Richer **process monitoring** (health, top CPU/memory, searchable process list)
+
 ## Two installables
 
 | Package | What it is | Where it runs |

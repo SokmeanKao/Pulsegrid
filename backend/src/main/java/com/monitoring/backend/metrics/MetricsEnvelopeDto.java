@@ -12,7 +12,8 @@ public record MetricsEnvelopeDto(
 		List<DiskMetricsDto> disks,
 		List<NetworkMetricsDto> networks,
 		List<ProcessMetricsDto> topProcesses,
-		AgentInfoDto agent
+		AgentInfoDto agent,
+		ProcessSummaryDto processSummary
 ) {
 	public record HostInfoDto(String hostname, String os, String arch, String platform) {}
 	public record AgentInfoDto(String version, String goVersion, long startedAtUnixMs, long samplesSent) {}
@@ -36,5 +37,28 @@ public record MetricsEnvelopeDto(
 			double rxPacketsPerSec, double txPacketsPerSec,
 			long rxErrors, long txErrors, long rxDropped, long txDropped,
 			long rxBytesTotal, long txBytesTotal) {}
-	public record ProcessMetricsDto(int pid, String name, double cpuPercent, double memoryMb) {}
+	public record ProcessMetricsDto(
+			int pid,
+			int ppid,
+			String name,
+			String user,
+			String state,
+			double cpuPercent,
+			double memoryMb,
+			int threadCount,
+			long rssBytes,
+			long vmsBytes,
+			double readBytesPerSec,
+			double writeBytesPerSec,
+			long startTimeUnixMs,
+			String command) {}
+	public record ProcessSummaryDto(
+			int total,
+			int running,
+			int sleeping,
+			int zombie,
+			int stopped,
+			int idle,
+			int other,
+			int threads) {}
 }

@@ -1,0 +1,62 @@
+{
+  "common": {
+    "loading": "Loading",
+    "retry": "Retry",
+    "search": "Search",
+    "save": "Save",
+    "close": "Close",
+    "live": "LIVE",
+    "paused": "PAUSED",
+    "hosts": "Hosts",
+    "healthy": "Healthy",
+    "warn": "Warn",
+    "crit": "Crit",
+    "view": "VIEW",
+    "edit": "EDIT",
+    "done": "Done",
+    "resume": "Resume",
+    "pause": "Pause",
+    "help": "Help",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "addWidget": "Add widget",
+    "editLayout": "Edit layout",
+    "resetLayout": "Reset layout",
+    "layout": "Layout",
+    "layoutNormal": "Normal",
+    "layoutCompact": "Compact",
+    "layoutExpanded": "Show More",
+    "preset": "Preset",
+    "selectHost": "Select a host to load its dashboard.",
+    "appearance": "Appearance",
+    "language": "Language",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "widgets": {
+    "cpu": "CPU",
+    "memory": "Memory",
+    "network": "Network",
+    "disk": "Disk",
+    "processes": "Processes",
+    "procHealth": "Process Health",
+    "topCpu": "Top CPU",
+    "topMem": "Top Memory",
+    "addWidgetTitle": "Add widget",
+    "loadingMetrics": "Loading metrics…",
+    "noData": "No data",
+    "stale": "STALE",
+    "reconnectAuto": "Reconnects automatically"
+  },
+  "presets": {
+    "general": "General",
+    "processes": "Processes",
+    "minimal": "Minimal",
+    "empty": "Empty",
+    "custom": "Custom"
+  }
+}

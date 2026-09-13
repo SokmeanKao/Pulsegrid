@@ -69,13 +69,10 @@ public class ServerRegistry implements ApplicationRunner {
 	}
 
 	private void bootstrapFromEnvIfEmpty() {
-		Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM servers", Integer.class);
-		if (count != null && count > 0) {
-			return;
-		}
 		if (agentsEnv == null || agentsEnv.isBlank()) {
 			return;
 		}
+		// Always upsert AGENTS so compose/.env changes pick up new hosts
 		for (String entry : agentsEnv.split(",")) {
 			String trimmed = entry.trim();
 			if (trimmed.isEmpty()) continue;

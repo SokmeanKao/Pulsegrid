@@ -6,6 +6,7 @@ import com.monitoring.backend.grpc.gen.MemoryMetrics;
 import com.monitoring.backend.grpc.gen.MetricsEnvelope;
 import com.monitoring.backend.grpc.gen.NetworkMetrics;
 import com.monitoring.backend.grpc.gen.ProcessMetrics;
+import com.monitoring.backend.grpc.gen.ProcessSummary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +35,32 @@ public final class EnvelopeMapper {
 		List<MetricsEnvelopeDto.ProcessMetricsDto> processes = new ArrayList<>();
 		for (ProcessMetrics p : value.getTopProcessesList()) {
 			processes.add(new MetricsEnvelopeDto.ProcessMetricsDto(
-					p.getPid(), p.getName(), p.getCpuPercent(), p.getMemoryMb()));
+					p.getPid(),
+					p.getPpid(),
+					p.getName(),
+					p.getUser(),
+					p.getState(),
+					p.getCpuPercent(),
+					p.getMemoryMb(),
+					(int) p.getThreadCount(),
+					p.getRssBytes(),
+					p.getVmsBytes(),
+					p.getReadBytesPerSec(),
+					p.getWriteBytesPerSec(),
+					p.getStartTimeUnixMs(),
+					p.getCommand()));
 		}
+
+		ProcessSummary ps = value.getProcessSummary();
+		MetricsEnvelopeDto.ProcessSummaryDto summary = new MetricsEnvelopeDto.ProcessSummaryDto(
+				(int) ps.getTotal(),
+				(int) ps.getRunning(),
+				(int) ps.getSleeping(),
+				(int) ps.getZombie(),
+				(int) ps.getStopped(),
+				(int) ps.getIdle(),
+				(int) ps.getOther(),
+				(int) ps.getThreads());
 
 		CpuMetrics cpu = value.getCpu();
 		MemoryMetrics mem = value.getMemory();
@@ -62,6 +87,7 @@ public final class EnvelopeMapper {
 						value.getAgent().getVersion(),
 						value.getAgent().getGoVersion(),
 						value.getAgent().getStartedAtUnixMs(),
-						value.getAgent().getSamplesSent()));
+						value.getAgent().getSamplesSent()),
+				summary);
 	}
 }

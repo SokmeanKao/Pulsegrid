@@ -1,0 +1,62 @@
+{
+  "common": {
+    "loading": "불러오는 중",
+    "retry": "다시 시도",
+    "search": "검색",
+    "save": "저장",
+    "close": "닫기",
+    "live": "LIVE",
+    "paused": "일시정지",
+    "hosts": "호스트",
+    "healthy": "정상",
+    "warn": "경고",
+    "crit": "위험",
+    "view": "보기",
+    "edit": "편집",
+    "done": "완료",
+    "resume": "재개",
+    "pause": "일시정지",
+    "help": "도움말",
+    "settings": "설정"
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "overview": "개요",
+    "addWidget": "위젯 추가",
+    "editLayout": "레이아웃 편집",
+    "resetLayout": "레이아웃 초기화",
+    "layout": "레이아웃",
+    "layoutNormal": "보통",
+    "layoutCompact": "압축",
+    "layoutExpanded": "더 보기",
+    "preset": "프리셋",
+    "selectHost": "대시보드를 불러올 호스트를 선택하세요.",
+    "appearance": "모양",
+    "language": "언어",
+    "themeLight": "라이트",
+    "themeDark": "다크",
+    "themeSystem": "시스템"
+  },
+  "widgets": {
+    "cpu": "CPU",
+    "memory": "Memory",
+    "network": "Network",
+    "disk": "Disk",
+    "processes": "Processes",
+    "procHealth": "Process Health",
+    "topCpu": "Top CPU",
+    "topMem": "Top Memory",
+    "addWidgetTitle": "위젯 추가",
+    "loadingMetrics": "메트릭 불러오는 중…",
+    "noData": "데이터 없음",
+    "stale": "지연",
+    "reconnectAuto": "자동으로 다시 연결됩니다"
+  },
+  "presets": {
+    "general": "일반",
+    "processes": "Processes",
+    "minimal": "최소",
+    "empty": "비움",
+    "custom": "사용자 지정"
+  }
+}

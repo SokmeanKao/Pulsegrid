@@ -1,0 +1,62 @@
+{
+  "common": {
+    "loading": "កំពុងផ្ទុក",
+    "retry": "ព្យាយាមម្តងទៀត",
+    "search": "ស្វែងរក",
+    "save": "រក្សាទុក",
+    "close": "បិទ",
+    "live": "ផ្ទាល់",
+    "paused": "ផ្អាក",
+    "hosts": "ម៉ាស៊ីន",
+    "healthy": "ល្អ",
+    "warn": "ព្រមាន",
+    "crit": "ធ្ងន់",
+    "view": "មើល",
+    "edit": "កែ",
+    "done": "រួចរាល់",
+    "resume": "បន្ត",
+    "pause": "ផ្អាក",
+    "help": "ជំនួយ",
+    "settings": "ការកំណត់"
+  },
+  "dashboard": {
+    "title": "ផ្ទាំងគ្រប់គ្រង",
+    "overview": "ទិដ្ឋភាពទូទៅ",
+    "addWidget": "បន្ថែម Widget",
+    "editLayout": "កែសម្រួលប្លង់",
+    "resetLayout": "កំណត់ប្លង់ឡើងវិញ",
+    "layout": "ប្លង់",
+    "layoutNormal": "ធម្មតា",
+    "layoutCompact": "បង្រួម",
+    "layoutExpanded": "បង្ហាញបន្ថែម",
+    "preset": "គំរូ",
+    "selectHost": "ជ្រើសរើសម៉ាស៊ីនដើម្បីផ្ទុកផ្ទាំងគ្រប់គ្រង។",
+    "appearance": "រូបរាង",
+    "language": "ភាសា",
+    "themeLight": "ភ្លឺ",
+    "themeDark": "ងងឹត",
+    "themeSystem": "ប្រព័ន្ធ"
+  },
+  "widgets": {
+    "cpu": "CPU",
+    "memory": "Memory",
+    "network": "Network",
+    "disk": "Disk",
+    "processes": "Processes",
+    "procHealth": "Process Health",
+    "topCpu": "Top CPU",
+    "topMem": "Top Memory",
+    "addWidgetTitle": "បន្ថែម Widget",
+    "loadingMetrics": "កំពុងផ្ទុក metrics…",
+    "noData": "គ្មានទិន្នន័យ",
+    "stale": "ហួសសម័យ",
+    "reconnectAuto": "ភ្ជាប់ឡើងវិញដោយស្វ័យប្រវត្តិ"
+  },
+  "presets": {
+    "general": "ទូទៅ",
+    "processes": "Processes",
+    "minimal": "តិចបំផុត",
+    "empty": "ទទេ",
+    "custom": "ផ្ទាល់ខ្លួន"
+  }
+}

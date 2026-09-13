@@ -676,11 +676,23 @@ func (x *NetworkMetrics) GetTxBytesTotal() uint64 {
 }
 
 type ProcessMetrics struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pid           int32                  `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	CpuPercent    float64                `protobuf:"fixed64,3,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
-	MemoryMb      float64                `protobuf:"fixed64,4,opt,name=memory_mb,json=memoryMb,proto3" json:"memory_mb,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Pid        int32                  `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	Name       string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	CpuPercent float64                `protobuf:"fixed64,3,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	MemoryMb   float64                `protobuf:"fixed64,4,opt,name=memory_mb,json=memoryMb,proto3" json:"memory_mb,omitempty"`
+	Ppid       int32                  `protobuf:"varint,5,opt,name=ppid,proto3" json:"ppid,omitempty"`
+	User       string                 `protobuf:"bytes,6,opt,name=user,proto3" json:"user,omitempty"`
+	// RUNNING | SLEEPING | ZOMBIE | STOPPED | IDLE | UNKNOWN
+	State            string  `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
+	ThreadCount      uint32  `protobuf:"varint,8,opt,name=thread_count,json=threadCount,proto3" json:"thread_count,omitempty"`
+	RssBytes         uint64  `protobuf:"varint,9,opt,name=rss_bytes,json=rssBytes,proto3" json:"rss_bytes,omitempty"`
+	VmsBytes         uint64  `protobuf:"varint,10,opt,name=vms_bytes,json=vmsBytes,proto3" json:"vms_bytes,omitempty"`
+	ReadBytesPerSec  float64 `protobuf:"fixed64,11,opt,name=read_bytes_per_sec,json=readBytesPerSec,proto3" json:"read_bytes_per_sec,omitempty"`
+	WriteBytesPerSec float64 `protobuf:"fixed64,12,opt,name=write_bytes_per_sec,json=writeBytesPerSec,proto3" json:"write_bytes_per_sec,omitempty"`
+	StartTimeUnixMs  int64   `protobuf:"varint,13,opt,name=start_time_unix_ms,json=startTimeUnixMs,proto3" json:"start_time_unix_ms,omitempty"`
+	// Truncated cmdline for stream (full command via GetProcessDetails later).
+	Command       string `protobuf:"bytes,14,opt,name=command,proto3" json:"command,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -743,6 +755,176 @@ func (x *ProcessMetrics) GetMemoryMb() float64 {
 	return 0
 }
 
+func (x *ProcessMetrics) GetPpid() int32 {
+	if x != nil {
+		return x.Ppid
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+func (x *ProcessMetrics) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *ProcessMetrics) GetThreadCount() uint32 {
+	if x != nil {
+		return x.ThreadCount
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetRssBytes() uint64 {
+	if x != nil {
+		return x.RssBytes
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetVmsBytes() uint64 {
+	if x != nil {
+		return x.VmsBytes
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetReadBytesPerSec() float64 {
+	if x != nil {
+		return x.ReadBytesPerSec
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetWriteBytesPerSec() float64 {
+	if x != nil {
+		return x.WriteBytesPerSec
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetStartTimeUnixMs() int64 {
+	if x != nil {
+		return x.StartTimeUnixMs
+	}
+	return 0
+}
+
+func (x *ProcessMetrics) GetCommand() string {
+	if x != nil {
+		return x.Command
+	}
+	return ""
+}
+
+type ProcessSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Total         uint32                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	Running       uint32                 `protobuf:"varint,2,opt,name=running,proto3" json:"running,omitempty"`
+	Sleeping      uint32                 `protobuf:"varint,3,opt,name=sleeping,proto3" json:"sleeping,omitempty"`
+	Zombie        uint32                 `protobuf:"varint,4,opt,name=zombie,proto3" json:"zombie,omitempty"`
+	Stopped       uint32                 `protobuf:"varint,5,opt,name=stopped,proto3" json:"stopped,omitempty"`
+	Idle          uint32                 `protobuf:"varint,6,opt,name=idle,proto3" json:"idle,omitempty"`
+	Other         uint32                 `protobuf:"varint,7,opt,name=other,proto3" json:"other,omitempty"`
+	Threads       uint32                 `protobuf:"varint,8,opt,name=threads,proto3" json:"threads,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProcessSummary) Reset() {
+	*x = ProcessSummary{}
+	mi := &file_monitoring_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProcessSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProcessSummary) ProtoMessage() {}
+
+func (x *ProcessSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProcessSummary.ProtoReflect.Descriptor instead.
+func (*ProcessSummary) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ProcessSummary) GetTotal() uint32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetRunning() uint32 {
+	if x != nil {
+		return x.Running
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetSleeping() uint32 {
+	if x != nil {
+		return x.Sleeping
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetZombie() uint32 {
+	if x != nil {
+		return x.Zombie
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetStopped() uint32 {
+	if x != nil {
+		return x.Stopped
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetIdle() uint32 {
+	if x != nil {
+		return x.Idle
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetOther() uint32 {
+	if x != nil {
+		return x.Other
+	}
+	return 0
+}
+
+func (x *ProcessSummary) GetThreads() uint32 {
+	if x != nil {
+		return x.Threads
+	}
+	return 0
+}
+
 type MetricsEnvelope struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	ServerId          string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
@@ -755,13 +937,14 @@ type MetricsEnvelope struct {
 	Networks          []*NetworkMetrics      `protobuf:"bytes,8,rep,name=networks,proto3" json:"networks,omitempty"`
 	TopProcesses      []*ProcessMetrics      `protobuf:"bytes,9,rep,name=top_processes,json=topProcesses,proto3" json:"top_processes,omitempty"`
 	Agent             *AgentInfo             `protobuf:"bytes,10,opt,name=agent,proto3" json:"agent,omitempty"`
+	ProcessSummary    *ProcessSummary        `protobuf:"bytes,11,opt,name=process_summary,json=processSummary,proto3" json:"process_summary,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *MetricsEnvelope) Reset() {
 	*x = MetricsEnvelope{}
-	mi := &file_monitoring_proto_msgTypes[10]
+	mi := &file_monitoring_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -773,7 +956,7 @@ func (x *MetricsEnvelope) String() string {
 func (*MetricsEnvelope) ProtoMessage() {}
 
 func (x *MetricsEnvelope) ProtoReflect() protoreflect.Message {
-	mi := &file_monitoring_proto_msgTypes[10]
+	mi := &file_monitoring_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -786,7 +969,7 @@ func (x *MetricsEnvelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetricsEnvelope.ProtoReflect.Descriptor instead.
 func (*MetricsEnvelope) Descriptor() ([]byte, []int) {
-	return file_monitoring_proto_rawDescGZIP(), []int{10}
+	return file_monitoring_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *MetricsEnvelope) GetServerId() string {
@@ -859,6 +1042,13 @@ func (x *MetricsEnvelope) GetAgent() *AgentInfo {
 	return nil
 }
 
+func (x *MetricsEnvelope) GetProcessSummary() *ProcessSummary {
+	if x != nil {
+		return x.ProcessSummary
+	}
+	return nil
+}
+
 var File_monitoring_proto protoreflect.FileDescriptor
 
 const file_monitoring_proto_rawDesc = "" +
@@ -919,13 +1109,33 @@ const file_monitoring_proto_rawDesc = "" +
 	"tx_dropped\x18\t \x01(\x04R\ttxDropped\x12$\n" +
 	"\x0erx_bytes_total\x18\n" +
 	" \x01(\x04R\frxBytesTotal\x12$\n" +
-	"\x0etx_bytes_total\x18\v \x01(\x04R\ftxBytesTotal\"t\n" +
+	"\x0etx_bytes_total\x18\v \x01(\x04R\ftxBytesTotal\"\xb2\x03\n" +
 	"\x0eProcessMetrics\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\x05R\x03pid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
 	"\vcpu_percent\x18\x03 \x01(\x01R\n" +
 	"cpuPercent\x12\x1b\n" +
-	"\tmemory_mb\x18\x04 \x01(\x01R\bmemoryMb\"\xe5\x03\n" +
+	"\tmemory_mb\x18\x04 \x01(\x01R\bmemoryMb\x12\x12\n" +
+	"\x04ppid\x18\x05 \x01(\x05R\x04ppid\x12\x12\n" +
+	"\x04user\x18\x06 \x01(\tR\x04user\x12\x14\n" +
+	"\x05state\x18\a \x01(\tR\x05state\x12!\n" +
+	"\fthread_count\x18\b \x01(\rR\vthreadCount\x12\x1b\n" +
+	"\trss_bytes\x18\t \x01(\x04R\brssBytes\x12\x1b\n" +
+	"\tvms_bytes\x18\n" +
+	" \x01(\x04R\bvmsBytes\x12+\n" +
+	"\x12read_bytes_per_sec\x18\v \x01(\x01R\x0freadBytesPerSec\x12-\n" +
+	"\x13write_bytes_per_sec\x18\f \x01(\x01R\x10writeBytesPerSec\x12+\n" +
+	"\x12start_time_unix_ms\x18\r \x01(\x03R\x0fstartTimeUnixMs\x12\x18\n" +
+	"\acommand\x18\x0e \x01(\tR\acommand\"\xd2\x01\n" +
+	"\x0eProcessSummary\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\rR\x05total\x12\x18\n" +
+	"\arunning\x18\x02 \x01(\rR\arunning\x12\x1a\n" +
+	"\bsleeping\x18\x03 \x01(\rR\bsleeping\x12\x16\n" +
+	"\x06zombie\x18\x04 \x01(\rR\x06zombie\x12\x18\n" +
+	"\astopped\x18\x05 \x01(\rR\astopped\x12\x12\n" +
+	"\x04idle\x18\x06 \x01(\rR\x04idle\x12\x14\n" +
+	"\x05other\x18\a \x01(\rR\x05other\x12\x18\n" +
+	"\athreads\x18\b \x01(\rR\athreads\"\xac\x04\n" +
 	"\x0fMetricsEnvelope\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12/\n" +
 	"\x14collected_at_unix_ms\x18\x02 \x01(\x03R\x11collectedAtUnixMs\x12\x1a\n" +
@@ -937,7 +1147,8 @@ const file_monitoring_proto_rawDesc = "" +
 	"\bnetworks\x18\b \x03(\v2\x1c.pulsegrid.v1.NetworkMetricsR\bnetworks\x12A\n" +
 	"\rtop_processes\x18\t \x03(\v2\x1c.pulsegrid.v1.ProcessMetricsR\ftopProcesses\x12-\n" +
 	"\x05agent\x18\n" +
-	" \x01(\v2\x17.pulsegrid.v1.AgentInfoR\x05agent2\xf7\x01\n" +
+	" \x01(\v2\x17.pulsegrid.v1.AgentInfoR\x05agent\x12E\n" +
+	"\x0fprocess_summary\x18\v \x01(\v2\x1c.pulsegrid.v1.ProcessSummaryR\x0eprocessSummary2\xf7\x01\n" +
 	"\x10PulsegridService\x12I\n" +
 	"\n" +
 	"GetMetrics\x12\x1c.pulsegrid.v1.MetricsRequest\x1a\x1d.pulsegrid.v1.MetricsEnvelope\x12N\n" +
@@ -957,7 +1168,7 @@ func file_monitoring_proto_rawDescGZIP() []byte {
 	return file_monitoring_proto_rawDescData
 }
 
-var file_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_monitoring_proto_goTypes = []any{
 	(*MetricsRequest)(nil),  // 0: pulsegrid.v1.MetricsRequest
 	(*HealthRequest)(nil),   // 1: pulsegrid.v1.HealthRequest
@@ -969,7 +1180,8 @@ var file_monitoring_proto_goTypes = []any{
 	(*DiskMetrics)(nil),     // 7: pulsegrid.v1.DiskMetrics
 	(*NetworkMetrics)(nil),  // 8: pulsegrid.v1.NetworkMetrics
 	(*ProcessMetrics)(nil),  // 9: pulsegrid.v1.ProcessMetrics
-	(*MetricsEnvelope)(nil), // 10: pulsegrid.v1.MetricsEnvelope
+	(*ProcessSummary)(nil),  // 10: pulsegrid.v1.ProcessSummary
+	(*MetricsEnvelope)(nil), // 11: pulsegrid.v1.MetricsEnvelope
 }
 var file_monitoring_proto_depIdxs = []int32{
 	3,  // 0: pulsegrid.v1.MetricsEnvelope.host:type_name -> pulsegrid.v1.HostInfo
@@ -979,17 +1191,18 @@ var file_monitoring_proto_depIdxs = []int32{
 	8,  // 4: pulsegrid.v1.MetricsEnvelope.networks:type_name -> pulsegrid.v1.NetworkMetrics
 	9,  // 5: pulsegrid.v1.MetricsEnvelope.top_processes:type_name -> pulsegrid.v1.ProcessMetrics
 	4,  // 6: pulsegrid.v1.MetricsEnvelope.agent:type_name -> pulsegrid.v1.AgentInfo
-	0,  // 7: pulsegrid.v1.PulsegridService.GetMetrics:input_type -> pulsegrid.v1.MetricsRequest
-	0,  // 8: pulsegrid.v1.PulsegridService.StreamMetrics:input_type -> pulsegrid.v1.MetricsRequest
-	1,  // 9: pulsegrid.v1.PulsegridService.HealthCheck:input_type -> pulsegrid.v1.HealthRequest
-	10, // 10: pulsegrid.v1.PulsegridService.GetMetrics:output_type -> pulsegrid.v1.MetricsEnvelope
-	10, // 11: pulsegrid.v1.PulsegridService.StreamMetrics:output_type -> pulsegrid.v1.MetricsEnvelope
-	2,  // 12: pulsegrid.v1.PulsegridService.HealthCheck:output_type -> pulsegrid.v1.HealthResponse
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	10, // 7: pulsegrid.v1.MetricsEnvelope.process_summary:type_name -> pulsegrid.v1.ProcessSummary
+	0,  // 8: pulsegrid.v1.PulsegridService.GetMetrics:input_type -> pulsegrid.v1.MetricsRequest
+	0,  // 9: pulsegrid.v1.PulsegridService.StreamMetrics:input_type -> pulsegrid.v1.MetricsRequest
+	1,  // 10: pulsegrid.v1.PulsegridService.HealthCheck:input_type -> pulsegrid.v1.HealthRequest
+	11, // 11: pulsegrid.v1.PulsegridService.GetMetrics:output_type -> pulsegrid.v1.MetricsEnvelope
+	11, // 12: pulsegrid.v1.PulsegridService.StreamMetrics:output_type -> pulsegrid.v1.MetricsEnvelope
+	2,  // 13: pulsegrid.v1.PulsegridService.HealthCheck:output_type -> pulsegrid.v1.HealthResponse
+	11, // [11:14] is the sub-list for method output_type
+	8,  // [8:11] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_monitoring_proto_init() }
@@ -1003,7 +1216,7 @@ func file_monitoring_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_monitoring_proto_rawDesc), len(file_monitoring_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
