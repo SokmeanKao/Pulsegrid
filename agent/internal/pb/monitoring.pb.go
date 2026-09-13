@@ -1440,6 +1440,446 @@ func (x *ProcessSummary) GetThreads() uint32 {
 	return 0
 }
 
+type HostExtras struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UptimeSeconds uint64                 `protobuf:"varint,1,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	Load1         float64                `protobuf:"fixed64,2,opt,name=load1,proto3" json:"load1,omitempty"`
+	Load5         float64                `protobuf:"fixed64,3,opt,name=load5,proto3" json:"load5,omitempty"`
+	Load15        float64                `protobuf:"fixed64,4,opt,name=load15,proto3" json:"load15,omitempty"`
+	LoadAvailable bool                   `protobuf:"varint,5,opt,name=load_available,json=loadAvailable,proto3" json:"load_available,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HostExtras) Reset() {
+	*x = HostExtras{}
+	mi := &file_monitoring_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HostExtras) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HostExtras) ProtoMessage() {}
+
+func (x *HostExtras) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HostExtras.ProtoReflect.Descriptor instead.
+func (*HostExtras) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *HostExtras) GetUptimeSeconds() uint64 {
+	if x != nil {
+		return x.UptimeSeconds
+	}
+	return 0
+}
+
+func (x *HostExtras) GetLoad1() float64 {
+	if x != nil {
+		return x.Load1
+	}
+	return 0
+}
+
+func (x *HostExtras) GetLoad5() float64 {
+	if x != nil {
+		return x.Load5
+	}
+	return 0
+}
+
+func (x *HostExtras) GetLoad15() float64 {
+	if x != nil {
+		return x.Load15
+	}
+	return 0
+}
+
+func (x *HostExtras) GetLoadAvailable() bool {
+	if x != nil {
+		return x.LoadAvailable
+	}
+	return false
+}
+
+type DockerContainer struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Image         string                 `protobuf:"bytes,3,opt,name=image,proto3" json:"image,omitempty"`
+	State         string                 `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	CpuPercent    float64                `protobuf:"fixed64,5,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	MemoryMb      float64                `protobuf:"fixed64,6,opt,name=memory_mb,json=memoryMb,proto3" json:"memory_mb,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DockerContainer) Reset() {
+	*x = DockerContainer{}
+	mi := &file_monitoring_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DockerContainer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DockerContainer) ProtoMessage() {}
+
+func (x *DockerContainer) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DockerContainer.ProtoReflect.Descriptor instead.
+func (*DockerContainer) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DockerContainer) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DockerContainer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DockerContainer) GetImage() string {
+	if x != nil {
+		return x.Image
+	}
+	return ""
+}
+
+func (x *DockerContainer) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *DockerContainer) GetCpuPercent() float64 {
+	if x != nil {
+		return x.CpuPercent
+	}
+	return 0
+}
+
+func (x *DockerContainer) GetMemoryMb() float64 {
+	if x != nil {
+		return x.MemoryMb
+	}
+	return 0
+}
+
+type DockerSummary struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Available         bool                   `protobuf:"varint,1,opt,name=available,proto3" json:"available,omitempty"`
+	ServerVersion     string                 `protobuf:"bytes,2,opt,name=server_version,json=serverVersion,proto3" json:"server_version,omitempty"`
+	ContainersRunning uint32                 `protobuf:"varint,3,opt,name=containers_running,json=containersRunning,proto3" json:"containers_running,omitempty"`
+	ContainersPaused  uint32                 `protobuf:"varint,4,opt,name=containers_paused,json=containersPaused,proto3" json:"containers_paused,omitempty"`
+	ContainersStopped uint32                 `protobuf:"varint,5,opt,name=containers_stopped,json=containersStopped,proto3" json:"containers_stopped,omitempty"`
+	Images            uint32                 `protobuf:"varint,6,opt,name=images,proto3" json:"images,omitempty"`
+	TopContainers     []*DockerContainer     `protobuf:"bytes,7,rep,name=top_containers,json=topContainers,proto3" json:"top_containers,omitempty"`
+	ErrorMessage      string                 `protobuf:"bytes,8,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *DockerSummary) Reset() {
+	*x = DockerSummary{}
+	mi := &file_monitoring_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DockerSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DockerSummary) ProtoMessage() {}
+
+func (x *DockerSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DockerSummary.ProtoReflect.Descriptor instead.
+func (*DockerSummary) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *DockerSummary) GetAvailable() bool {
+	if x != nil {
+		return x.Available
+	}
+	return false
+}
+
+func (x *DockerSummary) GetServerVersion() string {
+	if x != nil {
+		return x.ServerVersion
+	}
+	return ""
+}
+
+func (x *DockerSummary) GetContainersRunning() uint32 {
+	if x != nil {
+		return x.ContainersRunning
+	}
+	return 0
+}
+
+func (x *DockerSummary) GetContainersPaused() uint32 {
+	if x != nil {
+		return x.ContainersPaused
+	}
+	return 0
+}
+
+func (x *DockerSummary) GetContainersStopped() uint32 {
+	if x != nil {
+		return x.ContainersStopped
+	}
+	return 0
+}
+
+func (x *DockerSummary) GetImages() uint32 {
+	if x != nil {
+		return x.Images
+	}
+	return 0
+}
+
+func (x *DockerSummary) GetTopContainers() []*DockerContainer {
+	if x != nil {
+		return x.TopContainers
+	}
+	return nil
+}
+
+func (x *DockerSummary) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+type GpuSensor struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Name               string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	UtilizationPercent float64                `protobuf:"fixed64,2,opt,name=utilization_percent,json=utilizationPercent,proto3" json:"utilization_percent,omitempty"`
+	MemoryUsedMb       float64                `protobuf:"fixed64,3,opt,name=memory_used_mb,json=memoryUsedMb,proto3" json:"memory_used_mb,omitempty"`
+	MemoryTotalMb      float64                `protobuf:"fixed64,4,opt,name=memory_total_mb,json=memoryTotalMb,proto3" json:"memory_total_mb,omitempty"`
+	TemperatureC       float64                `protobuf:"fixed64,5,opt,name=temperature_c,json=temperatureC,proto3" json:"temperature_c,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *GpuSensor) Reset() {
+	*x = GpuSensor{}
+	mi := &file_monitoring_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GpuSensor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GpuSensor) ProtoMessage() {}
+
+func (x *GpuSensor) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GpuSensor.ProtoReflect.Descriptor instead.
+func (*GpuSensor) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GpuSensor) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GpuSensor) GetUtilizationPercent() float64 {
+	if x != nil {
+		return x.UtilizationPercent
+	}
+	return 0
+}
+
+func (x *GpuSensor) GetMemoryUsedMb() float64 {
+	if x != nil {
+		return x.MemoryUsedMb
+	}
+	return 0
+}
+
+func (x *GpuSensor) GetMemoryTotalMb() float64 {
+	if x != nil {
+		return x.MemoryTotalMb
+	}
+	return 0
+}
+
+func (x *GpuSensor) GetTemperatureC() float64 {
+	if x != nil {
+		return x.TemperatureC
+	}
+	return 0
+}
+
+type TempSensor struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Celsius       float64                `protobuf:"fixed64,2,opt,name=celsius,proto3" json:"celsius,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TempSensor) Reset() {
+	*x = TempSensor{}
+	mi := &file_monitoring_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TempSensor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TempSensor) ProtoMessage() {}
+
+func (x *TempSensor) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TempSensor.ProtoReflect.Descriptor instead.
+func (*TempSensor) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *TempSensor) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TempSensor) GetCelsius() float64 {
+	if x != nil {
+		return x.Celsius
+	}
+	return 0
+}
+
+type SensorSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Gpus          []*GpuSensor           `protobuf:"bytes,1,rep,name=gpus,proto3" json:"gpus,omitempty"`
+	Temperatures  []*TempSensor          `protobuf:"bytes,2,rep,name=temperatures,proto3" json:"temperatures,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SensorSummary) Reset() {
+	*x = SensorSummary{}
+	mi := &file_monitoring_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SensorSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SensorSummary) ProtoMessage() {}
+
+func (x *SensorSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_monitoring_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SensorSummary.ProtoReflect.Descriptor instead.
+func (*SensorSummary) Descriptor() ([]byte, []int) {
+	return file_monitoring_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *SensorSummary) GetGpus() []*GpuSensor {
+	if x != nil {
+		return x.Gpus
+	}
+	return nil
+}
+
+func (x *SensorSummary) GetTemperatures() []*TempSensor {
+	if x != nil {
+		return x.Temperatures
+	}
+	return nil
+}
+
 type MetricsEnvelope struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	ServerId          string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
@@ -1453,13 +1893,16 @@ type MetricsEnvelope struct {
 	TopProcesses      []*ProcessMetrics      `protobuf:"bytes,9,rep,name=top_processes,json=topProcesses,proto3" json:"top_processes,omitempty"`
 	Agent             *AgentInfo             `protobuf:"bytes,10,opt,name=agent,proto3" json:"agent,omitempty"`
 	ProcessSummary    *ProcessSummary        `protobuf:"bytes,11,opt,name=process_summary,json=processSummary,proto3" json:"process_summary,omitempty"`
+	HostExtras        *HostExtras            `protobuf:"bytes,12,opt,name=host_extras,json=hostExtras,proto3" json:"host_extras,omitempty"`
+	Docker            *DockerSummary         `protobuf:"bytes,13,opt,name=docker,proto3" json:"docker,omitempty"`
+	Sensors           *SensorSummary         `protobuf:"bytes,14,opt,name=sensors,proto3" json:"sensors,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *MetricsEnvelope) Reset() {
 	*x = MetricsEnvelope{}
-	mi := &file_monitoring_proto_msgTypes[17]
+	mi := &file_monitoring_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1471,7 +1914,7 @@ func (x *MetricsEnvelope) String() string {
 func (*MetricsEnvelope) ProtoMessage() {}
 
 func (x *MetricsEnvelope) ProtoReflect() protoreflect.Message {
-	mi := &file_monitoring_proto_msgTypes[17]
+	mi := &file_monitoring_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,7 +1927,7 @@ func (x *MetricsEnvelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetricsEnvelope.ProtoReflect.Descriptor instead.
 func (*MetricsEnvelope) Descriptor() ([]byte, []int) {
-	return file_monitoring_proto_rawDescGZIP(), []int{17}
+	return file_monitoring_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *MetricsEnvelope) GetServerId() string {
@@ -1560,6 +2003,27 @@ func (x *MetricsEnvelope) GetAgent() *AgentInfo {
 func (x *MetricsEnvelope) GetProcessSummary() *ProcessSummary {
 	if x != nil {
 		return x.ProcessSummary
+	}
+	return nil
+}
+
+func (x *MetricsEnvelope) GetHostExtras() *HostExtras {
+	if x != nil {
+		return x.HostExtras
+	}
+	return nil
+}
+
+func (x *MetricsEnvelope) GetDocker() *DockerSummary {
+	if x != nil {
+		return x.Docker
+	}
+	return nil
+}
+
+func (x *MetricsEnvelope) GetSensors() *SensorSummary {
+	if x != nil {
+		return x.Sensors
 	}
 	return nil
 }
@@ -1688,7 +2152,44 @@ const file_monitoring_proto_rawDesc = "" +
 	"\astopped\x18\x05 \x01(\rR\astopped\x12\x12\n" +
 	"\x04idle\x18\x06 \x01(\rR\x04idle\x12\x14\n" +
 	"\x05other\x18\a \x01(\rR\x05other\x12\x18\n" +
-	"\athreads\x18\b \x01(\rR\athreads\"\xac\x04\n" +
+	"\athreads\x18\b \x01(\rR\athreads\"\x9e\x01\n" +
+	"\n" +
+	"HostExtras\x12%\n" +
+	"\x0euptime_seconds\x18\x01 \x01(\x04R\ruptimeSeconds\x12\x14\n" +
+	"\x05load1\x18\x02 \x01(\x01R\x05load1\x12\x14\n" +
+	"\x05load5\x18\x03 \x01(\x01R\x05load5\x12\x16\n" +
+	"\x06load15\x18\x04 \x01(\x01R\x06load15\x12%\n" +
+	"\x0eload_available\x18\x05 \x01(\bR\rloadAvailable\"\x9f\x01\n" +
+	"\x0fDockerContainer\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05image\x18\x03 \x01(\tR\x05image\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\x12\x1f\n" +
+	"\vcpu_percent\x18\x05 \x01(\x01R\n" +
+	"cpuPercent\x12\x1b\n" +
+	"\tmemory_mb\x18\x06 \x01(\x01R\bmemoryMb\"\xe2\x02\n" +
+	"\rDockerSummary\x12\x1c\n" +
+	"\tavailable\x18\x01 \x01(\bR\tavailable\x12%\n" +
+	"\x0eserver_version\x18\x02 \x01(\tR\rserverVersion\x12-\n" +
+	"\x12containers_running\x18\x03 \x01(\rR\x11containersRunning\x12+\n" +
+	"\x11containers_paused\x18\x04 \x01(\rR\x10containersPaused\x12-\n" +
+	"\x12containers_stopped\x18\x05 \x01(\rR\x11containersStopped\x12\x16\n" +
+	"\x06images\x18\x06 \x01(\rR\x06images\x12D\n" +
+	"\x0etop_containers\x18\a \x03(\v2\x1d.pulsegrid.v1.DockerContainerR\rtopContainers\x12#\n" +
+	"\rerror_message\x18\b \x01(\tR\ferrorMessage\"\xc3\x01\n" +
+	"\tGpuSensor\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12/\n" +
+	"\x13utilization_percent\x18\x02 \x01(\x01R\x12utilizationPercent\x12$\n" +
+	"\x0ememory_used_mb\x18\x03 \x01(\x01R\fmemoryUsedMb\x12&\n" +
+	"\x0fmemory_total_mb\x18\x04 \x01(\x01R\rmemoryTotalMb\x12#\n" +
+	"\rtemperature_c\x18\x05 \x01(\x01R\ftemperatureC\":\n" +
+	"\n" +
+	"TempSensor\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\acelsius\x18\x02 \x01(\x01R\acelsius\"z\n" +
+	"\rSensorSummary\x12+\n" +
+	"\x04gpus\x18\x01 \x03(\v2\x17.pulsegrid.v1.GpuSensorR\x04gpus\x12<\n" +
+	"\ftemperatures\x18\x02 \x03(\v2\x18.pulsegrid.v1.TempSensorR\ftemperatures\"\xd3\x05\n" +
 	"\x0fMetricsEnvelope\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12/\n" +
 	"\x14collected_at_unix_ms\x18\x02 \x01(\x03R\x11collectedAtUnixMs\x12\x1a\n" +
@@ -1701,7 +2202,11 @@ const file_monitoring_proto_rawDesc = "" +
 	"\rtop_processes\x18\t \x03(\v2\x1c.pulsegrid.v1.ProcessMetricsR\ftopProcesses\x12-\n" +
 	"\x05agent\x18\n" +
 	" \x01(\v2\x17.pulsegrid.v1.AgentInfoR\x05agent\x12E\n" +
-	"\x0fprocess_summary\x18\v \x01(\v2\x1c.pulsegrid.v1.ProcessSummaryR\x0eprocessSummary2W\n" +
+	"\x0fprocess_summary\x18\v \x01(\v2\x1c.pulsegrid.v1.ProcessSummaryR\x0eprocessSummary\x129\n" +
+	"\vhost_extras\x18\f \x01(\v2\x18.pulsegrid.v1.HostExtrasR\n" +
+	"hostExtras\x123\n" +
+	"\x06docker\x18\r \x01(\v2\x1b.pulsegrid.v1.DockerSummaryR\x06docker\x125\n" +
+	"\asensors\x18\x0e \x01(\v2\x1b.pulsegrid.v1.SensorSummaryR\asensors2W\n" +
 	"\fAgentGateway\x12G\n" +
 	"\aConnect\x12\x1a.pulsegrid.v1.AgentMessage\x1a\x1c.pulsegrid.v1.MonitorMessage(\x010\x01B\\\n" +
 	"\x1fcom.monitoring.backend.grpc.genB\x0fMonitoringProtoP\x01Z&github.com/pulsegrid/agent/internal/pbb\x06proto3"
@@ -1718,7 +2223,7 @@ func file_monitoring_proto_rawDescGZIP() []byte {
 	return file_monitoring_proto_rawDescData
 }
 
-var file_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_monitoring_proto_goTypes = []any{
 	(*AgentHello)(nil),      // 0: pulsegrid.v1.AgentHello
 	(*Heartbeat)(nil),       // 1: pulsegrid.v1.Heartbeat
@@ -1737,32 +2242,44 @@ var file_monitoring_proto_goTypes = []any{
 	(*NetworkMetrics)(nil),  // 14: pulsegrid.v1.NetworkMetrics
 	(*ProcessMetrics)(nil),  // 15: pulsegrid.v1.ProcessMetrics
 	(*ProcessSummary)(nil),  // 16: pulsegrid.v1.ProcessSummary
-	(*MetricsEnvelope)(nil), // 17: pulsegrid.v1.MetricsEnvelope
+	(*HostExtras)(nil),      // 17: pulsegrid.v1.HostExtras
+	(*DockerContainer)(nil), // 18: pulsegrid.v1.DockerContainer
+	(*DockerSummary)(nil),   // 19: pulsegrid.v1.DockerSummary
+	(*GpuSensor)(nil),       // 20: pulsegrid.v1.GpuSensor
+	(*TempSensor)(nil),      // 21: pulsegrid.v1.TempSensor
+	(*SensorSummary)(nil),   // 22: pulsegrid.v1.SensorSummary
+	(*MetricsEnvelope)(nil), // 23: pulsegrid.v1.MetricsEnvelope
 }
 var file_monitoring_proto_depIdxs = []int32{
 	0,  // 0: pulsegrid.v1.AgentMessage.hello:type_name -> pulsegrid.v1.AgentHello
-	17, // 1: pulsegrid.v1.AgentMessage.metrics:type_name -> pulsegrid.v1.MetricsEnvelope
+	23, // 1: pulsegrid.v1.AgentMessage.metrics:type_name -> pulsegrid.v1.MetricsEnvelope
 	1,  // 2: pulsegrid.v1.AgentMessage.heartbeat:type_name -> pulsegrid.v1.Heartbeat
 	2,  // 3: pulsegrid.v1.AgentMessage.command_result:type_name -> pulsegrid.v1.CommandResult
 	4,  // 4: pulsegrid.v1.MonitorMessage.welcome:type_name -> pulsegrid.v1.Welcome
 	5,  // 5: pulsegrid.v1.MonitorMessage.reject:type_name -> pulsegrid.v1.Reject
 	6,  // 6: pulsegrid.v1.MonitorMessage.config_update:type_name -> pulsegrid.v1.ConfigUpdate
 	7,  // 7: pulsegrid.v1.MonitorMessage.command:type_name -> pulsegrid.v1.AgentCommand
-	9,  // 8: pulsegrid.v1.MetricsEnvelope.host:type_name -> pulsegrid.v1.HostInfo
-	11, // 9: pulsegrid.v1.MetricsEnvelope.cpu:type_name -> pulsegrid.v1.CpuMetrics
-	12, // 10: pulsegrid.v1.MetricsEnvelope.memory:type_name -> pulsegrid.v1.MemoryMetrics
-	13, // 11: pulsegrid.v1.MetricsEnvelope.disks:type_name -> pulsegrid.v1.DiskMetrics
-	14, // 12: pulsegrid.v1.MetricsEnvelope.networks:type_name -> pulsegrid.v1.NetworkMetrics
-	15, // 13: pulsegrid.v1.MetricsEnvelope.top_processes:type_name -> pulsegrid.v1.ProcessMetrics
-	10, // 14: pulsegrid.v1.MetricsEnvelope.agent:type_name -> pulsegrid.v1.AgentInfo
-	16, // 15: pulsegrid.v1.MetricsEnvelope.process_summary:type_name -> pulsegrid.v1.ProcessSummary
-	3,  // 16: pulsegrid.v1.AgentGateway.Connect:input_type -> pulsegrid.v1.AgentMessage
-	8,  // 17: pulsegrid.v1.AgentGateway.Connect:output_type -> pulsegrid.v1.MonitorMessage
-	17, // [17:18] is the sub-list for method output_type
-	16, // [16:17] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	18, // 8: pulsegrid.v1.DockerSummary.top_containers:type_name -> pulsegrid.v1.DockerContainer
+	20, // 9: pulsegrid.v1.SensorSummary.gpus:type_name -> pulsegrid.v1.GpuSensor
+	21, // 10: pulsegrid.v1.SensorSummary.temperatures:type_name -> pulsegrid.v1.TempSensor
+	9,  // 11: pulsegrid.v1.MetricsEnvelope.host:type_name -> pulsegrid.v1.HostInfo
+	11, // 12: pulsegrid.v1.MetricsEnvelope.cpu:type_name -> pulsegrid.v1.CpuMetrics
+	12, // 13: pulsegrid.v1.MetricsEnvelope.memory:type_name -> pulsegrid.v1.MemoryMetrics
+	13, // 14: pulsegrid.v1.MetricsEnvelope.disks:type_name -> pulsegrid.v1.DiskMetrics
+	14, // 15: pulsegrid.v1.MetricsEnvelope.networks:type_name -> pulsegrid.v1.NetworkMetrics
+	15, // 16: pulsegrid.v1.MetricsEnvelope.top_processes:type_name -> pulsegrid.v1.ProcessMetrics
+	10, // 17: pulsegrid.v1.MetricsEnvelope.agent:type_name -> pulsegrid.v1.AgentInfo
+	16, // 18: pulsegrid.v1.MetricsEnvelope.process_summary:type_name -> pulsegrid.v1.ProcessSummary
+	17, // 19: pulsegrid.v1.MetricsEnvelope.host_extras:type_name -> pulsegrid.v1.HostExtras
+	19, // 20: pulsegrid.v1.MetricsEnvelope.docker:type_name -> pulsegrid.v1.DockerSummary
+	22, // 21: pulsegrid.v1.MetricsEnvelope.sensors:type_name -> pulsegrid.v1.SensorSummary
+	3,  // 22: pulsegrid.v1.AgentGateway.Connect:input_type -> pulsegrid.v1.AgentMessage
+	8,  // 23: pulsegrid.v1.AgentGateway.Connect:output_type -> pulsegrid.v1.MonitorMessage
+	23, // [23:24] is the sub-list for method output_type
+	22, // [22:23] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_monitoring_proto_init() }
@@ -1788,7 +2305,7 @@ func file_monitoring_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_monitoring_proto_rawDesc), len(file_monitoring_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

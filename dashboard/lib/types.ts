@@ -83,6 +83,52 @@ export type ProcessSummary = {
   threads: number;
 };
 
+export type HostExtras = {
+  uptimeSeconds: number;
+  load1: number;
+  load5: number;
+  load15: number;
+  loadAvailable: boolean;
+};
+
+export type DockerContainer = {
+  id: string;
+  name: string;
+  image?: string;
+  state: string;
+  cpuPercent: number;
+  memoryMb: number;
+};
+
+export type DockerSummary = {
+  available: boolean;
+  serverVersion?: string;
+  containersRunning: number;
+  containersPaused: number;
+  containersStopped: number;
+  images: number;
+  topContainers: DockerContainer[];
+  errorMessage?: string;
+};
+
+export type GpuSensor = {
+  name: string;
+  utilizationPercent: number;
+  memoryUsedMb: number;
+  memoryTotalMb: number;
+  temperatureC: number;
+};
+
+export type TempSensor = {
+  name: string;
+  celsius: number;
+};
+
+export type SensorSummary = {
+  gpus: GpuSensor[];
+  temperatures: TempSensor[];
+};
+
 export type MetricsEnvelope = {
   serverId: string;
   collectedAtUnixMs: number;
@@ -95,6 +141,9 @@ export type MetricsEnvelope = {
   topProcesses: ProcessMetrics[];
   agent: AgentInfo;
   processSummary?: ProcessSummary | null;
+  hostExtras?: HostExtras | null;
+  docker?: DockerSummary | null;
+  sensors?: SensorSummary | null;
 };
 
 /** @deprecated alias for buffer typing during migration */

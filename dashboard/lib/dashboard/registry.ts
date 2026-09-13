@@ -1,11 +1,14 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  Box,
   Cpu,
   HardDrive,
   ListTree,
   MemoryStick,
   Network,
+  Server,
+  Thermometer,
 } from "lucide-react";
 import type { LayoutMode, WidgetCatalogItem, WidgetType } from "./types";
 
@@ -141,6 +144,45 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetRegistryEntry> = {
     maxH: 18,
     // Height is viewport only — table scrolls internally.
     heights: { compact: 6, normal: 10, expanded: 16 },
+  },
+  docker: {
+    type: "docker",
+    title: "Docker",
+    label: "Docker",
+    category: "SYSTEM",
+    icon: Box,
+    defaultW: 6,
+    defaultH: 8,
+    minW: 4,
+    minH: 4,
+    maxH: 14,
+    heights: { compact: 6, normal: 8, expanded: 12 },
+  },
+  host: {
+    type: "host",
+    title: "Host",
+    label: "Host",
+    category: "SYSTEM",
+    icon: Server,
+    defaultW: 3,
+    defaultH: 5,
+    minW: 3,
+    minH: 3,
+    maxH: 8,
+    heights: { compact: 4, normal: 5, expanded: 6 },
+  },
+  sensors: {
+    type: "sensors",
+    title: "Sensors",
+    label: "Sensors",
+    category: "SYSTEM",
+    icon: Thermometer,
+    defaultW: 4,
+    defaultH: 6,
+    minW: 3,
+    minH: 3,
+    maxH: 10,
+    heights: { compact: 5, normal: 6, expanded: 8 },
   },
 };
 

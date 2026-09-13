@@ -50,4 +50,6 @@ docker run --rm \
   ghcr.io/sokmeankao/pulsegrid-agent:latest
 ```
 
-Prefer the host binary/systemd install for real host metrics.
+## Optional: Docker access
+
+If the Docker widget should show live containers, the agent needs access to the Docker CLI/engine (Linux: often add the agent user to the `docker` group; Windows: Docker Desktop running). Without Docker, the widget shows **unavailable** and other metrics continue normally.

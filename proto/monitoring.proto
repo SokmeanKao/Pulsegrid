@@ -159,6 +159,52 @@ message ProcessSummary {
   uint32 threads = 8;
 }
 
+message HostExtras {
+  uint64 uptime_seconds = 1;
+  double load1 = 2;
+  double load5 = 3;
+  double load15 = 4;
+  bool load_available = 5;
+}
+
+message DockerContainer {
+  string id = 1;
+  string name = 2;
+  string image = 3;
+  string state = 4;
+  double cpu_percent = 5;
+  double memory_mb = 6;
+}
+
+message DockerSummary {
+  bool available = 1;
+  string server_version = 2;
+  uint32 containers_running = 3;
+  uint32 containers_paused = 4;
+  uint32 containers_stopped = 5;
+  uint32 images = 6;
+  repeated DockerContainer top_containers = 7;
+  string error_message = 8;
+}
+
+message GpuSensor {
+  string name = 1;
+  double utilization_percent = 2;
+  double memory_used_mb = 3;
+  double memory_total_mb = 4;
+  double temperature_c = 5;
+}
+
+message TempSensor {
+  string name = 1;
+  double celsius = 2;
+}
+
+message SensorSummary {
+  repeated GpuSensor gpus = 1;
+  repeated TempSensor temperatures = 2;
+}
+
 message MetricsEnvelope {
   string server_id = 1;
   int64 collected_at_unix_ms = 2;
@@ -171,4 +217,7 @@ message MetricsEnvelope {
   repeated ProcessMetrics top_processes = 9;
   AgentInfo agent = 10;
   ProcessSummary process_summary = 11;
+  HostExtras host_extras = 12;
+  DockerSummary docker = 13;
+  SensorSummary sensors = 14;
 }

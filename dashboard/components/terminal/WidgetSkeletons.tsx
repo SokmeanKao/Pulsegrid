@@ -154,6 +154,10 @@ export function widgetSkeleton(type: WidgetType) {
     case "top-cpu":
     case "top-mem":
       return <TopProcessSkeleton />;
+    case "docker":
+    case "host":
+    case "sensors":
+      return <ProcessHealthSkeleton />;
     default:
       return <CpuWidgetSkeleton />;
   }

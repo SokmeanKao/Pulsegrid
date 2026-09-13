@@ -13,7 +13,10 @@ public record MetricsEnvelopeDto(
 		List<NetworkMetricsDto> networks,
 		List<ProcessMetricsDto> topProcesses,
 		AgentInfoDto agent,
-		ProcessSummaryDto processSummary
+		ProcessSummaryDto processSummary,
+		HostExtrasDto hostExtras,
+		DockerSummaryDto docker,
+		SensorSummaryDto sensors
 ) {
 	public record HostInfoDto(String hostname, String os, String arch, String platform) {}
 	public record AgentInfoDto(String version, String goVersion, long startedAtUnixMs, long samplesSent) {}
@@ -61,4 +64,36 @@ public record MetricsEnvelopeDto(
 			int idle,
 			int other,
 			int threads) {}
+	public record HostExtrasDto(
+			long uptimeSeconds,
+			double load1,
+			double load5,
+			double load15,
+			boolean loadAvailable) {}
+	public record DockerContainerDto(
+			String id,
+			String name,
+			String image,
+			String state,
+			double cpuPercent,
+			double memoryMb) {}
+	public record DockerSummaryDto(
+			boolean available,
+			String serverVersion,
+			int containersRunning,
+			int containersPaused,
+			int containersStopped,
+			int images,
+			List<DockerContainerDto> topContainers,
+			String errorMessage) {}
+	public record GpuSensorDto(
+			String name,
+			double utilizationPercent,
+			double memoryUsedMb,
+			double memoryTotalMb,
+			double temperatureC) {}
+	public record TempSensorDto(String name, double celsius) {}
+	public record SensorSummaryDto(
+			List<GpuSensorDto> gpus,
+			List<TempSensorDto> temperatures) {}
 }

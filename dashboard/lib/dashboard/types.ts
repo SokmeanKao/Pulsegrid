@@ -6,7 +6,10 @@ export type WidgetType =
   | "processes"
   | "proc-health"
   | "top-cpu"
-  | "top-mem";
+  | "top-mem"
+  | "docker"
+  | "host"
+  | "sensors";
 
 /** Predictable dashboard density — no DOM height measurement. */
 export type LayoutMode = "compact" | "normal" | "expanded";

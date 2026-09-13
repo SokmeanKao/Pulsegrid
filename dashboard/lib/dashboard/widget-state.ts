@@ -55,6 +55,17 @@ export function inspectWidgetSlice(
         return { hasData: true, empty: false };
       }
       return { hasData: true, empty: true };
+    case "docker":
+      // available=false is still usable UI (unavailable state), not empty/error
+      return { hasData: sample.docker != null, empty: false };
+    case "host":
+      return { hasData: sample.hostExtras != null, empty: false };
+    case "sensors": {
+      const gpus = sample.sensors?.gpus?.length ?? 0;
+      const temps = sample.sensors?.temperatures?.length ?? 0;
+      if (sample.sensors == null) return { hasData: false, empty: false };
+      return { hasData: true, empty: gpus + temps === 0 };
+    }
     default:
       return { hasData: true, empty: false };
   }

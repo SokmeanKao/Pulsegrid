@@ -23,7 +23,7 @@ import (
 
 // AgentVersion is the agent build version. Override at link time:
 // go build -ldflags "-X github.com/pulsegrid/agent/internal/metrics.AgentVersion=1.3.0"
-var AgentVersion = "2.0.0"
+var AgentVersion = "2.1.0"
 
 var (
 	startedAt = time.Now()
@@ -202,6 +202,10 @@ func (c *Collector) Collect(ctx context.Context) (*pb.MetricsEnvelope, error) {
 
 	top, summary, _ := c.collectProcesses(ctx, now, prev, elapsed)
 
+	hostExtras := collectHostExtras(ctx)
+	docker := collectDocker(ctx)
+	sensors := collectSensors(ctx)
+
 	return &pb.MetricsEnvelope{
 		ServerId:           c.serverID,
 		CollectedAtUnixMs:  now.UnixMilli(),
@@ -232,6 +236,9 @@ func (c *Collector) Collect(ctx context.Context) (*pb.MetricsEnvelope, error) {
 		Networks:       networks,
 		TopProcesses:   top,
 		ProcessSummary: summary,
+		HostExtras:     hostExtras,
+		Docker:         docker,
+		Sensors:        sensors,
 		Agent: &pb.AgentInfo{
 			Version:         AgentVersion,
 			GoVersion:       runtime.Version(),

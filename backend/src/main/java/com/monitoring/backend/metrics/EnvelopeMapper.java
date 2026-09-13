@@ -2,11 +2,17 @@ package com.monitoring.backend.metrics;
 
 import com.monitoring.backend.grpc.gen.CpuMetrics;
 import com.monitoring.backend.grpc.gen.DiskMetrics;
+import com.monitoring.backend.grpc.gen.DockerContainer;
+import com.monitoring.backend.grpc.gen.DockerSummary;
+import com.monitoring.backend.grpc.gen.GpuSensor;
+import com.monitoring.backend.grpc.gen.HostExtras;
 import com.monitoring.backend.grpc.gen.MemoryMetrics;
 import com.monitoring.backend.grpc.gen.MetricsEnvelope;
 import com.monitoring.backend.grpc.gen.NetworkMetrics;
 import com.monitoring.backend.grpc.gen.ProcessMetrics;
 import com.monitoring.backend.grpc.gen.ProcessSummary;
+import com.monitoring.backend.grpc.gen.SensorSummary;
+import com.monitoring.backend.grpc.gen.TempSensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +68,44 @@ public final class EnvelopeMapper {
 				(int) ps.getOther(),
 				(int) ps.getThreads());
 
+		HostExtras he = value.getHostExtras();
+		MetricsEnvelopeDto.HostExtrasDto hostExtras = new MetricsEnvelopeDto.HostExtrasDto(
+				he.getUptimeSeconds(),
+				he.getLoad1(),
+				he.getLoad5(),
+				he.getLoad15(),
+				he.getLoadAvailable());
+
+		DockerSummary ds = value.getDocker();
+		List<MetricsEnvelopeDto.DockerContainerDto> containers = new ArrayList<>();
+		for (DockerContainer c : ds.getTopContainersList()) {
+			containers.add(new MetricsEnvelopeDto.DockerContainerDto(
+					c.getId(), c.getName(), c.getImage(), c.getState(),
+					c.getCpuPercent(), c.getMemoryMb()));
+		}
+		MetricsEnvelopeDto.DockerSummaryDto docker = new MetricsEnvelopeDto.DockerSummaryDto(
+				ds.getAvailable(),
+				ds.getServerVersion(),
+				(int) ds.getContainersRunning(),
+				(int) ds.getContainersPaused(),
+				(int) ds.getContainersStopped(),
+				(int) ds.getImages(),
+				containers,
+				ds.getErrorMessage());
+
+		SensorSummary ss = value.getSensors();
+		List<MetricsEnvelopeDto.GpuSensorDto> gpus = new ArrayList<>();
+		for (GpuSensor g : ss.getGpusList()) {
+			gpus.add(new MetricsEnvelopeDto.GpuSensorDto(
+					g.getName(), g.getUtilizationPercent(),
+					g.getMemoryUsedMb(), g.getMemoryTotalMb(), g.getTemperatureC()));
+		}
+		List<MetricsEnvelopeDto.TempSensorDto> temps = new ArrayList<>();
+		for (TempSensor t : ss.getTemperaturesList()) {
+			temps.add(new MetricsEnvelopeDto.TempSensorDto(t.getName(), t.getCelsius()));
+		}
+		MetricsEnvelopeDto.SensorSummaryDto sensors = new MetricsEnvelopeDto.SensorSummaryDto(gpus, temps);
+
 		CpuMetrics cpu = value.getCpu();
 		MemoryMetrics mem = value.getMemory();
 		return new MetricsEnvelopeDto(
@@ -88,6 +132,9 @@ public final class EnvelopeMapper {
 						value.getAgent().getGoVersion(),
 						value.getAgent().getStartedAtUnixMs(),
 						value.getAgent().getSamplesSent()),
-				summary);
+				summary,
+				hostExtras,
+				docker,
+				sensors);
 	}
 }

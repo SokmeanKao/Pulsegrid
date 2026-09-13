@@ -8,6 +8,7 @@ import { DiskPanel, NetworkPanel } from "./DiskNetworkPanels";
 import { ProcessPanel } from "./ProcessPanel";
 import { ProcessHealthPanel } from "./ProcessHealthPanel";
 import { TopCpuPanel, TopMemoryPanel } from "./TopProcessPanels";
+import { DockerPanel, HostPanel, SensorsPanel } from "./ExtrasPanels";
 
 type Props = {
   widget: DashboardWidget;
@@ -42,6 +43,12 @@ export function DashboardWidgetView({
         return <TopMemoryPanel sample={sample} />;
       case "processes":
         return <ProcessPanel sample={sample} />;
+      case "docker":
+        return <DockerPanel sample={sample} />;
+      case "host":
+        return <HostPanel sample={sample} />;
+      case "sensors":
+        return <SensorsPanel sample={sample} />;
       default:
         return (
           <div className="p-2 font-mono text-xs text-[var(--t-muted)]">

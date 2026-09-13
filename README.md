@@ -2,9 +2,16 @@
 
 Live fleet metrics: **agents dial Monitor** over TLS gRPC → Spring Boot + Timescale + Next.js.
 
-**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md) · **Latest:** [v2.0.0](https://github.com/SokmeanKao/Pulsegrid/releases/tag/v2.0.0)
+**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md) · **Latest:** [v2.1.0](https://github.com/SokmeanKao/Pulsegrid/releases/tag/v2.1.0)
 
 ![Pulsegrid terminal dashboard](docs/images/dashboard-terminal.png)
+
+## What's new in v2.1.0
+
+- **Docker** widget — engine status, counts, top containers by CPU/mem
+- **Host** widget — uptime + load averages
+- **Sensors** widget — NVIDIA GPU + temps when available
+- Graceful degrade when Docker/GPU/sensors are absent
 
 ## What's new in v2.0.0
 
