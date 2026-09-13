@@ -1,93 +1,64 @@
 package com.monitoring.backend.registry;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 @Component
-@Order(1)
-public class ServerRegistry implements ApplicationRunner {
+public class ServerRegistry {
 
 	private final JdbcTemplate jdbc;
-	private final String agentsEnv;
-	private volatile Map<String, AgentEndpoint> agents = Map.of();
 
-	public ServerRegistry(JdbcTemplate jdbc, @Value("${AGENTS:}") String agentsEnv) {
+	public ServerRegistry(JdbcTemplate jdbc) {
 		this.jdbc = jdbc;
-		this.agentsEnv = agentsEnv;
 	}
 
-	@Override
-	public void run(ApplicationArguments args) {
-		bootstrapFromEnvIfEmpty();
-		reload();
-	}
-
-	public Map<String, AgentEndpoint> getAgents() {
-		return agents;
-	}
-
-	public void reload() {
-		List<AgentEndpoint> rows = jdbc.query(
-				"SELECT id, name, grpc_host, grpc_port FROM servers ORDER BY name",
-				(rs, i) -> new AgentEndpoint(
-						rs.getString("name"),
-						rs.getString("grpc_host"),
-						rs.getInt("grpc_port")));
-		Map<String, AgentEndpoint> map = new LinkedHashMap<>();
-		for (AgentEndpoint e : rows) {
-			map.put(e.name(), e);
+	public boolean isRegistered(String serverId) {
+		if (serverId == null || serverId.isBlank()) {
+			return false;
 		}
-		this.agents = Collections.unmodifiableMap(map);
+		Integer n = jdbc.queryForObject(
+				"SELECT COUNT(*) FROM servers WHERE id = ?",
+				Integer.class,
+				serverId.trim());
+		return n != null && n > 0;
 	}
 
-	public AgentEndpoint add(String name, String host, int port, String environment, String tagsJson) {
+	public void upsertFromHello(
+			String serverId,
+			String hostname,
+			String os,
+			String arch,
+			String agentVersion,
+			String remoteAddr) {
+		String id = serverId.trim();
 		jdbc.update(
 				"""
-				INSERT INTO servers (id, name, grpc_host, grpc_port, environment, tags, first_seen, last_seen)
-				VALUES (?, ?, ?, ?, ?, ?::jsonb, NOW(), NOW())
+				INSERT INTO servers (
+				  id, name, hostname, os, architecture, agent_version,
+				  last_remote_addr, environment, tags, first_seen, last_seen
+				) VALUES (?, ?, ?, ?, ?, ?, ?, '', '[]'::jsonb, NOW(), NOW())
 				ON CONFLICT (id) DO UPDATE SET
-				  grpc_host = EXCLUDED.grpc_host,
-				  grpc_port = EXCLUDED.grpc_port,
-				  environment = EXCLUDED.environment,
-				  tags = EXCLUDED.tags,
+				  hostname = EXCLUDED.hostname,
+				  os = EXCLUDED.os,
+				  architecture = EXCLUDED.architecture,
+				  agent_version = EXCLUDED.agent_version,
+				  last_remote_addr = EXCLUDED.last_remote_addr,
 				  last_seen = NOW()
 				""",
-				name, name, host, port,
-				environment == null ? "" : environment,
-				tagsJson == null ? "[]" : tagsJson);
-		reload();
-		return agents.get(name);
+				id,
+				id,
+				nullToEmpty(hostname),
+				nullToEmpty(os),
+				nullToEmpty(arch),
+				nullToEmpty(agentVersion),
+				nullToEmpty(remoteAddr));
 	}
 
-	private void bootstrapFromEnvIfEmpty() {
-		if (agentsEnv == null || agentsEnv.isBlank()) {
-			return;
-		}
-		// Always upsert AGENTS so compose/.env changes pick up new hosts
-		for (String entry : agentsEnv.split(",")) {
-			String trimmed = entry.trim();
-			if (trimmed.isEmpty()) continue;
-			String[] parts = trimmed.split(":");
-			if (parts.length != 3) {
-				throw new IllegalArgumentException(
-						"Invalid AGENTS entry '" + trimmed + "'; expected name:host:port");
-			}
-			add(parts[0], parts[1], Integer.parseInt(parts[2]), "compose", "[]");
-		}
+	public void touchLastSeen(String serverId) {
+		jdbc.update("UPDATE servers SET last_seen = NOW() WHERE id = ?", serverId);
 	}
 
-	public record AgentEndpoint(String name, String host, int port) {
-		public String target() {
-			return host + ":" + port;
-		}
+	private static String nullToEmpty(String v) {
+		return v == null ? "" : v;
 	}
 }
