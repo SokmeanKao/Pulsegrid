@@ -1,12 +1,10 @@
-# Pulsegrid Monitor (control plane): db + backend + dashboard
-# Agents run separately on each host — see scripts/install-agent.sh
+# Pulsegrid Monitor (control plane): db + backend + dashboard + Agent Gateway
+# Agents dial Monitor :50051 (TLS) — see scripts/install-agent.sh
 #
-# Monitor only:
 #   docker compose up -d --build
 #
-# Monitor + demo in-compose agents (fake fleet):
-#   AGENTS=web-01:agent-web-01:50051,db-01:agent-db-01:50052 \
-#     docker compose --profile demo up -d --build
+# Demo agents (client mode, profile demo):
+#   docker compose --profile demo up -d --build
 
 services:
   db:
@@ -29,13 +27,19 @@ services:
   backend:
     build: ./backend
     environment:
-      # Comma list: id:host:port — real agents on LAN/host, not in this compose by default
-      AGENTS: ${AGENTS:-}
       DATABASE_URL: jdbc:postgresql://db:5432/pulsegrid
       DATABASE_USER: pulsegrid
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-pulsegrid}
+      GATEWAY_PORT: "50051"
+      GATEWAY_TLS_CERT: /certs/server.crt
+      GATEWAY_TLS_KEY: /certs/server.key
+      GATEWAY_CA_CERT: /certs/ca.crt
+      GATEWAY_ADVERTISE_HOST: ${GATEWAY_ADVERTISE_HOST:-localhost}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
+      - "${GATEWAY_PORT:-50051}:50051"
+    volumes:
+      - ./certs:/certs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -48,33 +52,43 @@ services:
       context: ./dashboard
       args:
         NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8080/ws/metrics}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     environment:
       NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8080/ws/metrics}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     ports:
       - "${DASHBOARD_PORT:-3000}:3000"
     depends_on:
       - backend
     restart: unless-stopped
 
-  # --- optional demo agents (profile: demo) — container metrics only ---
+  # Demo agents dial the gateway (need pre-enrolled tokens via DEMO bootstrap or UI)
   agent-web-01:
     profiles: ["demo"]
     build: ./agent
     environment:
-      PORT: "50051"
       SERVER_ID: web-01
-    expose:
-      - "50051"
+      MONITOR_ADDRESS: backend:50051
+      JOIN_TOKEN: ${DEMO_JOIN_TOKEN_WEB:-}
+      MONITOR_CA_FILE: /certs/ca.crt
+    volumes:
+      - ./certs:/certs:ro
+    depends_on:
+      - backend
     restart: unless-stopped
 
   agent-db-01:
     profiles: ["demo"]
     build: ./agent
     environment:
-      PORT: "50052"
       SERVER_ID: db-01
-    expose:
-      - "50052"
+      MONITOR_ADDRESS: backend:50051
+      JOIN_TOKEN: ${DEMO_JOIN_TOKEN_DB:-}
+      MONITOR_CA_FILE: /certs/ca.crt
+    volumes:
+      - ./certs:/certs:ro
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:

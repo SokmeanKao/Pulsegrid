@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM golang:1.22-bookworm AS build
-ARG VERSION=1.2.0
+ARG VERSION=2.0.0
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -11,7 +11,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 
 FROM gcr.io/distroless/static-debian12
 COPY --from=build /pulsegrid-agent /pulsegrid-agent
-ENV PORT=50051
-EXPOSE 50051
 USER nonroot:nonroot
 ENTRYPOINT ["/pulsegrid-agent"]

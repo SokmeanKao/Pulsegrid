@@ -19,36 +19,29 @@ Live fleet metrics: **agents on each host** → gRPC → **Monitor** (Spring Boo
 
 | Package | What it is | Where it runs |
 |---|---|---|
-| **Pulsegrid Monitor** | DB + backend + UI | Ops server / your laptop (Docker) |
-| **Pulsegrid Agent** | Metrics collector | Each machine you want to watch |
+| **Pulsegrid Monitor** | DB + backend + UI + **Agent Gateway :50051 (TLS)** | Ops server / your laptop (Docker) |
+| **Pulsegrid Agent** | Metrics collector (**dials** Monitor) | Each machine you want to watch |
 
-Agents are **not** part of the default Monitor compose.
+Agents initiate the connection. There is no `AGENTS=` list and agents expose no inbound port.
 
 ---
 
 ## Install Monitor (one-liner, Linux)
 
-Full walkthrough (firewall, AGENTS, upgrades, uninstall): **[docs/INSTALL.md](docs/INSTALL.md)**.
+Full walkthrough: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --agents "kali-01:192.168.150.131:50051" --public-host YOUR_LAN_IP
+  | sudo bash -s -- --public-host YOUR_LAN_IP
 ```
 
 Windows (repo already cloned, Docker Desktop running):
 
 ```powershell
-.\scripts\install-monitor.ps1 -Agents "local-01:host.docker.internal:50051"
+.\scripts\install-monitor.ps1 -PublicHost localhost
 ```
 
-Then open http://localhost:3000 (or `http://YOUR_LAN_IP:3000`).
-
-Optional demo agents inside Compose (container metrics only):
-
-```bash
-sudo bash scripts/install-monitor.sh --demo
-# or: docker compose --profile demo up -d --build
-```
+Then open http://localhost:3000/terminal → **+ Add Agent**.
 
 ---
 
@@ -56,19 +49,17 @@ sudo bash scripts/install-monitor.sh --demo
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01
+  | sudo bash -s -- \
+      --server-id kali-01 \
+      --monitor YOUR_LAN_IP:50051 \
+      --token pg_join_xxxxx \
+      --ca /path/to/ca.crt
 ```
 
 Windows:
 
 ```powershell
-.\scripts\run-agent.ps1 -ServerId local-01
-```
-
-Point Monitor at agents via `.env` / `--agents`:
-
-```text
-AGENTS=kali-01:192.168.150.131:50051,local-01:host.docker.internal:50051
+.\scripts\run-agent.ps1 -ServerId local-01 -Monitor localhost:50051 -Token pg_join_... -CaFile .\certs\ca.crt
 ```
 
 See [agent/README.md](agent/README.md).

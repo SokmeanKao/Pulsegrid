@@ -15,13 +15,16 @@ type Props = {
   hosts: HostRow[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  emptyHint?: string;
 };
 
-export function HostList({ hosts, selectedId, onSelect }: Props) {
+export function HostList({ hosts, selectedId, onSelect, emptyHint }: Props) {
   return (
     <div className="space-y-0.5">
       {hosts.length === 0 ? (
-        <p className="text-[var(--t-muted)]">Waiting for hosts…</p>
+        <p className="text-[var(--t-muted)]">
+          {emptyHint ?? "Waiting for hosts…"}
+        </p>
       ) : (
         hosts.map((h) => {
           const selected = h.id === selectedId;

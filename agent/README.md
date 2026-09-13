@@ -1,6 +1,6 @@
 # Pulsegrid Agent
 
-Go metrics agent that streams host stats over gRPC to the Pulsegrid backend.
+Go metrics agent that **dials** the Pulsegrid Monitor Agent Gateway over TLS and streams host stats.
 
 **Binary name:** `pulsegrid-agent` (Windows: `pulsegrid-agent.exe`)
 
@@ -8,90 +8,46 @@ Full product install guide: **[docs/INSTALL.md](../docs/INSTALL.md)**.
 
 ## Env
 
-| Var | Required | Default | Meaning |
-|---|---|---|---|
-| `SERVER_ID` | yes | — | Host id shown in the dashboard (e.g. `local-01`, `kali-01`) |
-| `PORT` | no | `50051` | gRPC listen port |
+| Var | Required | Meaning |
+|---|---|---|
+| `SERVER_ID` | yes | Host id shown in the dashboard |
+| `MONITOR_ADDRESS` | yes | Monitor gateway `host:port` (e.g. `192.168.150.10:50051`) |
+| `MONITOR_CA_FILE` | yes | Path to Monitor `ca.crt` |
+| `JOIN_TOKEN` | first enroll | `pg_join_…` from UI Add Agent (optional after registered) |
+
+The agent does **not** listen on a port.
 
 ## Install (Linux one-liner)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01
+  | sudo bash -s -- \
+      --server-id kali-01 \
+      --monitor MONITOR_IP:50051 \
+      --token pg_join_xxxxx \
+      --ca /path/to/ca.crt
 ```
 
-Pin a version:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01 --version v1.2.0
-```
-
-Install the **Monitor** (UI + backend + DB) separately — see [docs/MONITOR.md](../docs/MONITOR.md):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --agents "kali-01:THIS_HOST_IP:50051" --public-host MONITOR_IP
-```
-
-### Container (GHCR)
-
-```bash
-docker pull ghcr.io/sokmeankao/pulsegrid-agent:v1.2.0
-docker run --rm --net=host \
-  -e SERVER_ID=kali-01 -e PORT=50051 \
-  ghcr.io/sokmeankao/pulsegrid-agent:v1.2.0
-```
-
-## Build
-
-From repo root (Windows PowerShell):
+## Windows (from repo)
 
 ```powershell
 .\scripts\build-agent.ps1
+.\scripts\run-agent.ps1 -ServerId local-01 `
+  -Monitor localhost:50051 `
+  -Token pg_join_xxxxx `
+  -CaFile .\certs\ca.crt
 ```
 
-Produces:
-
-- `agent/dist/pulsegrid-agent.exe` — Windows amd64
-- `agent/dist/pulsegrid-agent-linux-amd64` — Linux amd64 (Kali / Ubuntu / Debian)
-
-## Run locally (Windows)
-
-```powershell
-cd C:\Dev\Pulsegrid\agent
-$env:SERVER_ID = "local-01"
-.\dist\pulsegrid-agent.exe
-```
-
-## Run on Linux (Kali)
-
-On the Kali host (after copying the Linux binary):
+## Container
 
 ```bash
-chmod +x ./pulsegrid-agent-linux-amd64
-export SERVER_ID=kali-01
-export PORT=50051
-./pulsegrid-agent-linux-amd64
+docker run --rm \
+  -e SERVER_ID=kali-01 \
+  -e MONITOR_ADDRESS=192.168.150.10:50051 \
+  -e JOIN_TOKEN=pg_join_xxxxx \
+  -e MONITOR_CA_FILE=/certs/ca.crt \
+  -v /path/to/ca.crt:/certs/ca.crt:ro \
+  ghcr.io/sokmeankao/pulsegrid-agent:latest
 ```
 
-Open the firewall if the backend is on another machine:
-
-```bash
-# ufw example
-sudo ufw allow 50051/tcp
-```
-
-Backend on Windows should include the Kali host, e.g.:
-
-```text
-AGENTS=local-01:localhost:50051,kali-01:192.168.150.131:50051
-```
-
-## Deploy helper (from Windows)
-
-```powershell
-.\scripts\deploy-agent-linux.ps1 -HostAddress 192.168.150.131 -User kali -ServerId kali-01
-```
-
-You will be prompted for the SSH password. Do **not** put passwords in the repo.
+Prefer the host binary/systemd install for real host metrics.

@@ -38,7 +38,6 @@ linux-kali.txt
 secrets/
 .secrets/
 
-# local override configs
-**/application-local.yml
-**/application-local.properties
-docker-compose.override.yml
+# local TLS material for Agent Gateway (generate via scripts/)
+certs/
+!certs/.gitkeep
