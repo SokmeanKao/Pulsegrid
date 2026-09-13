@@ -129,10 +129,22 @@ pulsegrid/
 
 ## Quick local e2e
 
-1. Agent: `SERVER_ID=local-01` → `pulsegrid-agent` on `:50051` (Windows) or `kali-01` on Linux  
-2. Backend: `AGENTS=local-01:localhost:50051` (add `,kali-01:192.168.150.131:50051` for Kali) → `:8080`  
-3. Dashboard: `npm run dev` → `http://localhost:3000` (`/terminal` for TUI)
+### Monitor (DB + backend + UI)
 
-Build agents: `.\scripts\build-agent.ps1` → `agent/dist/pulsegrid-agent.exe` + `pulsegrid-agent-linux-amd64`  
-Deploy to Kali: `.\scripts\deploy-agent-linux.ps1 -HostAddress 192.168.150.131 -User kali -ServerId kali-01`  
+```powershell
+.\scripts\install-monitor.ps1 -Agents "local-01:host.docker.internal:50051"
+# or: docker compose up -d --build
+```
+
+Linux one-liner: `scripts/install-monitor.sh` — see [MONITOR.md](./MONITOR.md).
+
+### Agent (separate host / process)
+
+```powershell
+.\scripts\run-agent.ps1 -ServerId local-01
+```
+
+Linux: `scripts/install-agent.sh --server-id kali-01`  
+Build: `.\scripts\build-agent.ps1` → `agent/dist/`  
+Deploy Kali: `.\scripts\deploy-agent-linux.ps1 -HostAddress 192.168.150.131 -User kali -ServerId kali-01`  
 See [agent/README.md](../agent/README.md).

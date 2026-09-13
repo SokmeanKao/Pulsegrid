@@ -25,6 +25,13 @@ curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/i
   | sudo bash -s -- --server-id kali-01 --version v1.2.0
 ```
 
+Install the **Monitor** (UI + backend + DB) separately — see [docs/MONITOR.md](../docs/MONITOR.md):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
+  | sudo bash -s -- --agents "kali-01:THIS_HOST_IP:50051" --public-host MONITOR_IP
+```
+
 ### Container (GHCR)
 
 ```bash
