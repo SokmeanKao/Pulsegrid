@@ -2,7 +2,7 @@
 
 Live fleet metrics: **agents on each host** → gRPC → **Monitor** (Spring Boot + Timescale + Next.js).
 
-**Status:** [docs/STATUS.md](docs/STATUS.md)
+**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md)
 
 ## Two installables
 
@@ -16,6 +16,8 @@ Agents are **not** part of the default Monitor compose.
 ---
 
 ## Install Monitor (one-liner, Linux)
+
+Full walkthrough (firewall, AGENTS, upgrades, uninstall): **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \

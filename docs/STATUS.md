@@ -2,6 +2,8 @@
 
 **Last updated:** 2026-09-13
 
+**Install:** [INSTALL.md](./INSTALL.md) · **Monitor:** [MONITOR.md](./MONITOR.md)
+
 ## Architecture
 
 ```

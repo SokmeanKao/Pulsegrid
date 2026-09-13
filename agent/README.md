@@ -4,6 +4,8 @@ Go metrics agent that streams host stats over gRPC to the Pulsegrid backend.
 
 **Binary name:** `pulsegrid-agent` (Windows: `pulsegrid-agent.exe`)
 
+Full product install guide: **[docs/INSTALL.md](../docs/INSTALL.md)**.
+
 ## Env
 
 | Var | Required | Default | Meaning |

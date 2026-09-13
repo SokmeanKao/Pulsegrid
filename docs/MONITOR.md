@@ -2,6 +2,7 @@
 
 Control plane: **TimescaleDB + Spring Boot backend + Next.js UI**.
 
+Full install walkthrough: **[INSTALL.md](./INSTALL.md)**.  
 Agents are installed separately ([agent/README.md](../agent/README.md)).
 
 ## Quick start
