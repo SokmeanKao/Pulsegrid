@@ -29,9 +29,17 @@ cd agent
 go run ./cmd/pulsegrid-agent
 ```
 
-Linux (Kali): build with `.\scripts\build-agent.ps1`, then deploy:
+Linux (Kali) one-liner (after first release tag exists):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
+  | sudo bash -s -- --server-id kali-01
+```
+
+Or build locally and deploy:
 
 ```powershell
+.\scripts\build-agent.ps1
 .\scripts\deploy-agent-linux.ps1 -HostAddress 192.168.150.131 -User kali -ServerId kali-01
 ```
 

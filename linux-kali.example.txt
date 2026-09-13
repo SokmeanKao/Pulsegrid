@@ -1,0 +1,8 @@
+# Example only — copy to linux-kali.txt (gitignored) and fill in locally.
+# Never commit real passwords.
+#
+# ssh user@HOST
+# pass: <password>
+#
+ssh kali@192.168.x.x
+pass: <password>

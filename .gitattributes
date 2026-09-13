@@ -1,0 +1,2 @@
+# Force shell installers to LF so curl|bash works on Linux
+*.sh text eol=lf

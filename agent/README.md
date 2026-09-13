@@ -11,6 +11,29 @@ Go metrics agent that streams host stats over gRPC to the Pulsegrid backend.
 | `SERVER_ID` | yes | — | Host id shown in the dashboard (e.g. `local-01`, `kali-01`) |
 | `PORT` | no | `50051` | gRPC listen port |
 
+## Install (Linux one-liner)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
+  | sudo bash -s -- --server-id kali-01
+```
+
+Pin a version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
+  | sudo bash -s -- --server-id kali-01 --version v1.2.0
+```
+
+### Container (GHCR)
+
+```bash
+docker pull ghcr.io/sokmeankao/pulsegrid-agent:v1.2.0
+docker run --rm --net=host \
+  -e SERVER_ID=kali-01 -e PORT=50051 \
+  ghcr.io/sokmeankao/pulsegrid-agent:v1.2.0
+```
+
 ## Build
 
 From repo root (Windows PowerShell):

@@ -20,7 +20,9 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 )
 
-const AgentVersion = "1.2.0"
+// AgentVersion is the agent build version. Override at link time:
+// go build -ldflags "-X github.com/pulsegrid/agent/internal/metrics.AgentVersion=1.2.0"
+var AgentVersion = "1.2.0"
 
 var (
 	startedAt = time.Now()

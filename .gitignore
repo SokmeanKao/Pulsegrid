@@ -1,3 +1,4 @@
+# --- build / tooling ---
 .tools/
 **/bin/
 **/dist/
@@ -9,8 +10,35 @@
 **/*.iml
 **/.DS_Store
 *.log
+*.tmp
+*.swp
+
+# --- env & secrets (never commit) ---
 .env
-.env.local
-linux-kali.txt
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.credentials
 *credentials*
 *passwd*
+*password*
+*secret*
+!**/package-lock.json
+
+# host access notes with passwords / private IPs + creds
+linux-kali.txt
+*-kali.txt
+*hosts-private*
+secrets/
+.secrets/
+
+# local override configs
+**/application-local.yml
+**/application-local.properties
+docker-compose.override.yml
