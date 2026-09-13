@@ -7,20 +7,68 @@ option java_multiple_files = true;
 option java_package = "com.monitoring.backend.grpc.gen";
 option java_outer_classname = "MonitoringProto";
 
-service PulsegridService {
-  rpc GetMetrics(MetricsRequest) returns (MetricsEnvelope);
-  rpc StreamMetrics(MetricsRequest) returns (stream MetricsEnvelope);
-  rpc HealthCheck(HealthRequest) returns (HealthResponse);
+// Agent dials Monitor. Monitor is the gRPC server.
+service AgentGateway {
+  rpc Connect(stream AgentMessage) returns (stream MonitorMessage);
 }
 
-message MetricsRequest {}
+message AgentHello {
+  string server_id = 1;
+  string hostname = 2;
+  string os = 3;
+  string arch = 4;
+  string agent_version = 5;
+  string join_token = 6; // required for unregistered hosts
+}
 
-message HealthRequest {}
+message Heartbeat {
+  int64 unix_ms = 1;
+}
 
-message HealthResponse {
-  // OK | NOT_READY
-  string status = 1;
+message CommandResult {
+  string command_id = 1;
+  bool ok = 2;
+  string message = 3;
+}
+
+message AgentMessage {
+  oneof payload {
+    AgentHello hello = 1;
+    MetricsEnvelope metrics = 2;
+    Heartbeat heartbeat = 3;
+    CommandResult command_result = 4;
+  }
+}
+
+message Welcome {
+  bool accepted = 1;
+  uint32 heartbeat_interval_seconds = 2;
+  uint32 metrics_interval_seconds = 3;
+}
+
+message Reject {
+  string code = 1;
   string message = 2;
+}
+
+message ConfigUpdate {
+  uint32 metrics_interval_seconds = 1;
+  uint32 heartbeat_interval_seconds = 2;
+}
+
+message AgentCommand {
+  string command_id = 1;
+  string type = 2;
+  string payload_json = 3;
+}
+
+message MonitorMessage {
+  oneof payload {
+    Welcome welcome = 1;
+    Reject reject = 2;
+    ConfigUpdate config_update = 3;
+    AgentCommand command = 4;
+  }
 }
 
 message HostInfo {
