@@ -5,12 +5,79 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/pulsegrid/agent/internal/pb"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/load"
 )
+
+const extrasCacheTTL = 15 * time.Second
+
+type extrasCache struct {
+	mu        sync.Mutex
+	docker    *pb.DockerSummary
+	dockerAt  time.Time
+	sensors   *pb.SensorSummary
+	sensorsAt time.Time
+	dockerBusy  bool
+	sensorsBusy bool
+}
+
+func (c *extrasCache) dockerCached(now time.Time) (*pb.DockerSummary, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.docker != nil && now.Sub(c.dockerAt) < extrasCacheTTL {
+		return c.docker, true
+	}
+	return c.docker, false
+}
+
+func (c *extrasCache) storeDocker(now time.Time, d *pb.DockerSummary) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.docker = d
+	c.dockerAt = now
+	c.dockerBusy = false
+}
+
+func (c *extrasCache) sensorsCached(now time.Time) (*pb.SensorSummary, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.sensors != nil && now.Sub(c.sensorsAt) < extrasCacheTTL {
+		return c.sensors, true
+	}
+	return c.sensors, false
+}
+
+func (c *extrasCache) storeSensors(now time.Time, s *pb.SensorSummary) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.sensors = s
+	c.sensorsAt = now
+	c.sensorsBusy = false
+}
+
+func (c *extrasCache) tryStartDocker() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.dockerBusy {
+		return false
+	}
+	c.dockerBusy = true
+	return true
+}
+
+func (c *extrasCache) tryStartSensors() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.sensorsBusy {
+		return false
+	}
+	c.sensorsBusy = true
+	return true
+}
 
 func collectHostExtras(ctx context.Context) *pb.HostExtras {
 	out := &pb.HostExtras{}
@@ -26,8 +93,57 @@ func collectHostExtras(ctx context.Context) *pb.HostExtras {
 	return out
 }
 
+func (c *Collector) dockerSummary(ctx context.Context, now time.Time) *pb.DockerSummary {
+	cached, fresh := c.extras.dockerCached(now)
+	if fresh {
+		return cached
+	}
+	if c.extras.tryStartDocker() {
+		go func() {
+			defer func() {
+				if recover() != nil {
+					c.extras.mu.Lock()
+					c.extras.dockerBusy = false
+					c.extras.mu.Unlock()
+				}
+			}()
+			sum := collectDocker(context.Background())
+			c.extras.storeDocker(time.Now(), sum)
+		}()
+	}
+	if cached != nil {
+		return cached
+	}
+	return &pb.DockerSummary{Available: false, ErrorMessage: "probing"}
+}
+
+func (c *Collector) sensorsSummary(ctx context.Context, now time.Time) *pb.SensorSummary {
+	cached, fresh := c.extras.sensorsCached(now)
+	if fresh {
+		return cached
+	}
+	if c.extras.tryStartSensors() {
+		go func() {
+			defer func() {
+				if recover() != nil {
+					c.extras.mu.Lock()
+					c.extras.sensorsBusy = false
+					c.extras.mu.Unlock()
+				}
+			}()
+			sum := collectSensors(context.Background())
+			c.extras.storeSensors(time.Now(), sum)
+		}()
+	}
+	if cached != nil {
+		return cached
+	}
+	return &pb.SensorSummary{}
+}
+
 func collectDocker(ctx context.Context) *pb.DockerSummary {
-	ctx, cancel := context.WithTimeout(ctx, 1500*time.Millisecond)
+	// Keep short — docker stats alone can take ~1s; we only run this on cache miss.
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
 	infoOut, err := exec.CommandContext(ctx, "docker", "info", "--format", "{{.ServerVersion}}|{{.ContainersRunning}}|{{.ContainersPaused}}|{{.ContainersStopped}}|{{.Images}}").Output()
@@ -57,8 +173,8 @@ func collectDocker(ctx context.Context) *pb.DockerSummary {
 	}
 	lines := strings.Split(strings.TrimSpace(string(statsOut)), "\n")
 	type row struct {
-		c    *pb.DockerContainer
-		cpu  float64
+		c   *pb.DockerContainer
+		cpu float64
 	}
 	var rows []row
 	for _, line := range lines {
@@ -87,7 +203,6 @@ func collectDocker(ctx context.Context) *pb.DockerSummary {
 			},
 		})
 	}
-	// sort by CPU desc, take 8
 	for i := 0; i < len(rows); i++ {
 		for j := i + 1; j < len(rows); j++ {
 			if rows[j].cpu > rows[i].cpu {
@@ -106,11 +221,10 @@ func collectDocker(ctx context.Context) *pb.DockerSummary {
 }
 
 func collectSensors(ctx context.Context) *pb.SensorSummary {
-	ctx, cancel := context.WithTimeout(ctx, 1200*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 800*time.Millisecond)
 	defer cancel()
 	out := &pb.SensorSummary{}
 
-	// nvidia-smi CSV: name, util.gpu, memory.used, memory.total, temperature.gpu
 	cmd := exec.CommandContext(ctx, "nvidia-smi",
 		"--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu",
 		"--format=csv,noheader,nounits")
@@ -129,11 +243,11 @@ func collectSensors(ctx context.Context) *pb.SensorSummary {
 				f[i] = strings.TrimSpace(f[i])
 			}
 			gpu := &pb.GpuSensor{
-				Name:                 f[0],
-				UtilizationPercent:   parseFloat(f[1]),
-				MemoryUsedMb:         parseFloat(f[2]),
-				MemoryTotalMb:        parseFloat(f[3]),
-				TemperatureC:         parseFloat(f[4]),
+				Name:               f[0],
+				UtilizationPercent: parseFloat(f[1]),
+				MemoryUsedMb:       parseFloat(f[2]),
+				MemoryTotalMb:      parseFloat(f[3]),
+				TemperatureC:       parseFloat(f[4]),
 			}
 			out.Gpus = append(out.Gpus, gpu)
 			if gpu.TemperatureC > 0 {
@@ -163,7 +277,6 @@ func parsePercent(s string) float64 {
 }
 
 func parseMemMB(s string) float64 {
-	// e.g. "123.4MiB / 2GiB"
 	s = strings.TrimSpace(strings.Split(s, "/")[0])
 	s = strings.TrimSpace(s)
 	upper := strings.ToUpper(s)

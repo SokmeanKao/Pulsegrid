@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -18,12 +17,11 @@ import (
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
-	"github.com/shirou/gopsutil/v3/process"
 )
 
 // AgentVersion is the agent build version. Override at link time:
 // go build -ldflags "-X github.com/pulsegrid/agent/internal/metrics.AgentVersion=1.3.0"
-var AgentVersion = "2.1.0"
+var AgentVersion = "2.1.1"
 
 var (
 	startedAt = time.Now()
@@ -36,6 +34,8 @@ type ioSnapshot struct {
 	net      map[string]net.IOCountersStat
 	diskRead map[string]disk.IOCountersStat
 	procIO   map[int32]procIOSnap
+	procCPU  map[int32]float64 // cumulative process CPU seconds
+	cpuAt    time.Time         // when procCPU was last sampled
 }
 
 type procIOSnap struct {
@@ -47,7 +47,21 @@ type Collector struct {
 	mu       sync.Mutex
 	previous *ioSnapshot
 	serverID string
+	extras   extrasCache
+	procScan procScanCache
 }
+
+type procScanCache struct {
+	mu        sync.Mutex
+	at        time.Time
+	lights    []lightProc
+	summary   *pb.ProcessSummary
+	cpuTotals map[int32]float64
+	enriched  []*pb.ProcessMetrics
+	enrSum    *pb.ProcessSummary
+}
+
+const procScanTTL = 8 * time.Second
 
 func NewCollector(serverID string) *Collector {
 	return &Collector{serverID: serverID}
@@ -128,6 +142,7 @@ func (c *Collector) Collect(ctx context.Context) (*pb.MetricsEnvelope, error) {
 		net:      netMap,
 		diskRead: diskMap,
 		procIO:   map[int32]procIOSnap{},
+		procCPU:  map[int32]float64{},
 	}
 	c.mu.Unlock()
 
@@ -200,11 +215,11 @@ func (c *Collector) Collect(ctx context.Context) (*pb.MetricsEnvelope, error) {
 		}
 	}
 
-	top, summary, _ := c.collectProcesses(ctx, now, prev, elapsed)
+	top, summary, _ := c.collectProcesses(ctx, prev, elapsed)
 
 	hostExtras := collectHostExtras(ctx)
-	docker := collectDocker(ctx)
-	sensors := collectSensors(ctx)
+	docker := c.dockerSummary(ctx, now)
+	sensors := c.sensorsSummary(ctx, now)
 
 	return &pb.MetricsEnvelope{
 		ServerId:           c.serverID,
@@ -274,152 +289,6 @@ func truncateCmd(cmd string, max int) string {
 		return cmd
 	}
 	return cmd[:max-1] + "…"
-}
-
-func (c *Collector) collectProcesses(
-	ctx context.Context,
-	now time.Time,
-	prev *ioSnapshot,
-	elapsed float64,
-) ([]*pb.ProcessMetrics, *pb.ProcessSummary, error) {
-	procs, err := process.ProcessesWithContext(ctx)
-	if err != nil {
-		return nil, &pb.ProcessSummary{}, err
-	}
-
-	type row struct {
-		metric *pb.ProcessMetrics
-		ioRead uint64
-		ioWrit uint64
-	}
-
-	summary := &pb.ProcessSummary{}
-	rows := make([]row, 0, len(procs))
-	procIO := make(map[int32]procIOSnap, len(procs))
-
-	for _, p := range procs {
-		name, err := p.NameWithContext(ctx)
-		if err != nil || name == "" {
-			continue
-		}
-		summary.Total++
-
-		cpuP, _ := p.CPUPercentWithContext(ctx)
-		mi, _ := p.MemoryInfoWithContext(ctx)
-		var rss, vms uint64
-		memMB := 0.0
-		if mi != nil {
-			rss, vms = mi.RSS, mi.VMS
-			memMB = float64(mi.RSS) / (1024 * 1024)
-		}
-
-		ppid, _ := p.PpidWithContext(ctx)
-		username, _ := p.UsernameWithContext(ctx)
-		statuses, _ := p.StatusWithContext(ctx)
-		state := "UNKNOWN"
-		if len(statuses) > 0 {
-			state = normalizeState(statuses[0])
-		}
-		switch state {
-		case "RUNNING":
-			summary.Running++
-		case "SLEEPING":
-			summary.Sleeping++
-		case "ZOMBIE":
-			summary.Zombie++
-		case "STOPPED":
-			summary.Stopped++
-		case "IDLE":
-			summary.Idle++
-		default:
-			summary.Other++
-		}
-
-		threads, _ := p.NumThreadsWithContext(ctx)
-		if threads > 0 {
-			summary.Threads += uint32(threads)
-		}
-
-		var readB, writeB uint64
-		if ioC, err := p.IOCountersWithContext(ctx); err == nil && ioC != nil {
-			readB, writeB = ioC.ReadBytes, ioC.WriteBytes
-		}
-		procIO[p.Pid] = procIOSnap{read: readB, write: writeB}
-
-		var readRate, writeRate float64
-		if prev != nil && elapsed > 0 {
-			if old, ok := prev.procIO[p.Pid]; ok {
-				readRate = perSec(readB, old.read, elapsed)
-				writeRate = perSec(writeB, old.write, elapsed)
-			}
-		}
-
-		createTs, _ := p.CreateTimeWithContext(ctx)
-		cmdline, _ := p.CmdlineWithContext(ctx)
-		if cmdline == "" {
-			cmdline = name
-		}
-
-		rows = append(rows, row{
-			metric: &pb.ProcessMetrics{
-				Pid:               p.Pid,
-				Ppid:              int32(ppid),
-				Name:              name,
-				User:              username,
-				State:             state,
-				CpuPercent:        cpuP,
-				MemoryMb:          memMB,
-				ThreadCount:       uint32(threads),
-				RssBytes:          rss,
-				VmsBytes:          vms,
-				ReadBytesPerSec:   readRate,
-				WriteBytesPerSec:  writeRate,
-				StartTimeUnixMs:   createTs,
-				Command:           truncateCmd(cmdline, 120),
-			},
-			ioRead: readB,
-			ioWrit: writeB,
-		})
-	}
-
-	c.mu.Lock()
-	if c.previous != nil {
-		c.previous.procIO = procIO
-	}
-	c.mu.Unlock()
-
-	byCPU := append([]row(nil), rows...)
-	sort.Slice(byCPU, func(i, j int) bool {
-		return byCPU[i].metric.CpuPercent > byCPU[j].metric.CpuPercent
-	})
-	byMem := append([]row(nil), rows...)
-	sort.Slice(byMem, func(i, j int) bool {
-		return byMem[i].metric.MemoryMb > byMem[j].metric.MemoryMb
-	})
-	byIO := append([]row(nil), rows...)
-	sort.Slice(byIO, func(i, j int) bool {
-		ai := byIO[i].metric.ReadBytesPerSec + byIO[i].metric.WriteBytesPerSec
-		aj := byIO[j].metric.ReadBytesPerSec + byIO[j].metric.WriteBytesPerSec
-		return ai > aj
-	})
-
-	seen := map[int32]struct{}{}
-	out := make([]*pb.ProcessMetrics, 0, 40)
-	add := func(list []row, n int) {
-		for i := 0; i < len(list) && n > 0; i++ {
-			r := list[i]
-			if _, ok := seen[r.metric.Pid]; ok {
-				continue
-			}
-			seen[r.metric.Pid] = struct{}{}
-			out = append(out, r.metric)
-			n--
-		}
-	}
-	add(byCPU, 15)
-	add(byMem, 10)
-	add(byIO, 5)
-	return out, summary, nil
 }
 
 func perSec(cur, prev uint64, elapsed float64) float64 {
