@@ -1,40 +1,39 @@
 ﻿package main
 
 import (
+	"context"
 	"log"
-	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/pulsegrid/agent/internal/gateway"
 	"github.com/pulsegrid/agent/internal/metrics"
-	"github.com/pulsegrid/agent/internal/pb"
-	"github.com/pulsegrid/agent/internal/server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	serverID := os.Getenv("SERVER_ID")
-	if serverID == "" {
+	cfg := gateway.Config{
+		ServerID:       os.Getenv("SERVER_ID"),
+		MonitorAddress: os.Getenv("MONITOR_ADDRESS"),
+		JoinToken:      os.Getenv("JOIN_TOKEN"),
+		CAFile:         os.Getenv("MONITOR_CA_FILE"),
+	}
+	if cfg.ServerID == "" {
 		log.Fatal("SERVER_ID is required")
 	}
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "50051"
+	if cfg.MonitorAddress == "" {
+		log.Fatal("MONITOR_ADDRESS is required (e.g. 192.168.150.10:50051)")
+	}
+	if cfg.CAFile == "" {
+		log.Fatal("MONITOR_CA_FILE is required")
 	}
 
-	lis, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		log.Fatalf("listen: %v", err)
-	}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	collector := metrics.NewCollector(serverID)
-	grpcServer := grpc.NewServer()
-	pb.RegisterPulsegridServiceServer(grpcServer, &server.PulsegridServer{Collector: collector})
-	reflection.Register(grpcServer)
-
-	log.Printf("pulsegrid-agent %q v%s listening on :%s", serverID, metrics.AgentVersion, port)
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("serve: %v", err)
+	collector := metrics.NewCollector(cfg.ServerID)
+	log.Printf("pulsegrid-agent %q v%s → monitor %s", cfg.ServerID, metrics.AgentVersion, cfg.MonitorAddress)
+	if err := gateway.Run(ctx, cfg, collector); err != nil && ctx.Err() == nil {
+		log.Fatal(err)
 	}
 }

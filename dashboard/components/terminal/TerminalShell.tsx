@@ -34,6 +34,7 @@ import {
 } from "@/lib/dashboard/types";
 import type { GridStackWidget } from "gridstack";
 import { HostList, type HostRow } from "./HostList";
+import { AddAgentModal } from "@/components/agents/AddAgentModal";
 import { DashboardWidgetView } from "./DashboardWidgetView";
 import { AddWidgetModal } from "./AddWidgetModal";
 import { TerminalEditModeProvider } from "./edit-mode";
@@ -93,6 +94,7 @@ export function TerminalShell() {
   const [addOpen, setAddOpen] = useState(false);
   const [presetOpen, setPresetOpen] = useState(false);
   const [layoutOpen, setLayoutOpen] = useState(false);
+  const [addAgentOpen, setAddAgentOpen] = useState(false);
   const gridBoardRef = useRef<GridStackBoardHandle>(null);
   const saveTimer = useRef<number | null>(null);
   const dashboardRef = useRef(dashboard);
@@ -438,7 +440,16 @@ export function TerminalShell() {
         <div className="grid min-h-0 flex-1 lg:grid-cols-[220px_minmax(0,1fr)]">
           <aside className="flex min-h-0 flex-col border-r border-[var(--t-border)] bg-[var(--t-panel)]">
             <div className="shrink-0 border-b border-[var(--t-border)] px-2 py-1 text-[11px] uppercase tracking-wider text-[var(--t-info)]">
-              ┌─ {t("common.hosts")} ─
+              <div className="flex items-center justify-between gap-2">
+                <span>┌─ {t("common.hosts")} ─</span>
+                <button
+                  type="button"
+                  className="normal-case tracking-normal text-[var(--t-muted)] hover:text-[var(--t-info)]"
+                  onClick={() => setAddAgentOpen(true)}
+                >
+                  + Add Agent
+                </button>
+              </div>
             </div>
             <div className="shrink-0 border-b border-[var(--t-border)] p-2">
               <div className="relative">
@@ -463,6 +474,7 @@ export function TerminalShell() {
                 hosts={hosts}
                 selectedId={selectedId}
                 onSelect={setSelectedId}
+                emptyHint="No agents connected yet."
               />
             </div>
           </aside>
@@ -674,6 +686,11 @@ export function TerminalShell() {
           open={addOpen}
           onClose={() => setAddOpen(false)}
           onAdd={addWidget}
+        />
+
+        <AddAgentModal
+          open={addAgentOpen}
+          onClose={() => setAddAgentOpen(false)}
         />
 
         {showHelp ? (

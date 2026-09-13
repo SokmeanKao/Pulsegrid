@@ -23,7 +23,7 @@ import (
 
 // AgentVersion is the agent build version. Override at link time:
 // go build -ldflags "-X github.com/pulsegrid/agent/internal/metrics.AgentVersion=1.3.0"
-var AgentVersion = "1.3.0"
+var AgentVersion = "2.0.0"
 
 var (
 	startedAt = time.Now()

@@ -1,23 +1,19 @@
-# Pulsegrid — Installation Guide
+# Pulsegrid — Installation Guide (v2.0)
 
 This guide installs Pulsegrid in two parts:
 
-1. **Monitor** — database, backend API/WebSocket, and web UI (one server)
-2. **Agent** — metrics collector on each machine you want to watch
+1. **Monitor** — database, backend API/WebSocket, web UI, and **Agent Gateway** (TLS :50051)
+2. **Agent** — metrics collector on each machine (**dials** the Monitor; no inbound agent port)
 
 ```text
-[ agent on host A ] ──gRPC──┐
-[ agent on host B ] ──gRPC──┼──► Monitor (backend + DB + UI)
-[ agent on host C ] ──gRPC──┘         ▲
-                                      │ browser
-                                   http://monitor:3000
+[ agent on host A ] ──TLS gRPC──┐
+[ agent on host B ] ──TLS gRPC──┼──► Monitor Agent Gateway :50051
+[ agent on host C ] ──TLS gRPC──┘         ▲
+                                          │ browser
+                                       http://monitor:3000
 ```
 
-| Doc | Focus |
-|---|---|
-| **This page** | Full install walkthrough |
-| [MONITOR.md](./MONITOR.md) | Monitor-only details |
-| [../agent/README.md](../agent/README.md) | Agent build, deploy, GHCR |
+**Product rule:** agents always initiate the connection. There is no `AGENTS=` list.
 
 Repo: https://github.com/SokmeanKao/Pulsegrid
 
@@ -27,245 +23,112 @@ Repo: https://github.com/SokmeanKao/Pulsegrid
 
 ### Monitor host
 
-- Docker Engine + **Docker Compose v2**
-- Outbound access to pull images / build
-- Open ports (defaults): **3000** (UI), **8080** (API/WS), optionally **5432** (Postgres)
+- Docker Engine + Docker Compose v2
+- Open ports: **3000** (UI), **8080** (API/WS), **50051** (Agent Gateway TLS)
 
 ### Agent host
 
 - Linux: `curl`, root/`sudo`, systemd recommended  
-  **or** Docker to run the GHCR image  
-- Windows: built `pulsegrid-agent.exe` (see agent README)
-- Port **50051/tcp** reachable from the Monitor backend (firewall)
+- Windows: built `pulsegrid-agent.exe`
+- **Outbound** access to Monitor:50051 (no inbound Pulsegrid port required)
 
 ---
 
-## Quick start (recommended)
+## Quick start
 
 ### Step 1 — Install Monitor
 
-**Linux (one-liner)**
-
-Replace `MONITOR_IP` with the IP browsers will use, and list agents you will install (you can leave `--agents` empty and edit later).
+**Linux**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- \
-      --public-host MONITOR_IP \
-      --agents "kali-01:192.168.150.131:50051,local-01:host.docker.internal:50051"
+  | sudo bash -s -- --public-host MONITOR_IP
 ```
 
-What it does:
-
-- Clones the repo to `/opt/pulsegrid` (default)
-- Writes `.env` (`AGENTS`, `NEXT_PUBLIC_WS_URL`, ports)
-- Runs `docker compose up -d --build` (DB + backend + dashboard)
-
-**Windows (from a git clone, Docker Desktop)**
+**Windows** (repo cloned, Docker Desktop):
 
 ```powershell
-cd C:\Dev\Pulsegrid
-.\scripts\install-monitor.ps1 -Agents "local-01:host.docker.internal:50051" -PublicHost localhost
+.\scripts\install-monitor.ps1 -PublicHost localhost
+# or: -PublicHost 192.168.150.10
 ```
 
-**From an existing checkout (any OS)**
-
-```bash
-cp .env.example .env
-# edit AGENTS= and NEXT_PUBLIC_WS_URL=
-docker compose up -d --build
-```
+This generates `certs/` (LAN CA + server cert) and starts Compose.
 
 ### Step 2 — Open the UI
 
 | URL | Purpose |
 |---|---|
-| `http://MONITOR_IP:3000` | Dashboard (GUI) |
-| `http://MONITOR_IP:3000/terminal` | Terminal view |
+| `http://MONITOR_IP:3000/terminal` | Terminal dashboard |
 | `http://MONITOR_IP:8080/healthz` | Backend health |
+| Agent Gateway | `MONITOR_IP:50051` (TLS) |
 
-### Step 3 — Install Agent on each target
+### Step 3 — Add Agent
 
-**Linux one-liner** (GitHub Release binary + systemd):
+In the UI: **+ Add Agent** → enter `kali-01` → copy install command.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01
-```
-
-Pin a release:
+Or manually:
 
 ```bash
+# copy Monitor certs/ca.crt to the agent host first
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01 --version v1.2.0
+  | sudo bash -s -- \
+      --server-id kali-01 \
+      --monitor MONITOR_IP:50051 \
+      --token pg_join_xxxxx \
+      --ca /path/to/ca.crt
 ```
 
 **Windows**
 
 ```powershell
-cd C:\Dev\Pulsegrid
-.\scripts\build-agent.ps1
-.\scripts\run-agent.ps1 -ServerId local-01
+.\scripts\run-agent.ps1 -ServerId local-01 `
+  -Monitor localhost:50051 `
+  -Token pg_join_xxxxx `
+  -CaFile .\certs\ca.crt
 ```
 
-**Agent as container (GHCR)**
-
-```bash
-docker run -d --name pulsegrid-agent --net=host --restart unless-stopped \
-  -e SERVER_ID=kali-01 -e PORT=50051 \
-  ghcr.io/sokmeankao/pulsegrid-agent:v1.2.0
-```
-
-> Prefer the **host binary/systemd** install for real host metrics. A plain container without host mounts mostly sees container stats.
-
-### Step 4 — Wire agents into Monitor
-
-`AGENTS` format: `id:host:port` comma-separated.
-
-Examples:
-
-```text
-# Agent on another LAN machine
-AGENTS=kali-01:192.168.150.131:50051
-
-# Agent on the same machine as Docker Desktop / Compose
-AGENTS=local-01:host.docker.internal:50051
-
-# Both
-AGENTS=kali-01:192.168.150.131:50051,local-01:host.docker.internal:50051
-```
-
-Edit `/opt/pulsegrid/.env` (or your clone’s `.env`), then:
-
-```bash
-cd /opt/pulsegrid   # or your clone
-docker compose up -d --build backend dashboard
-```
-
-Rebuild **dashboard** if you changed `NEXT_PUBLIC_WS_URL` (it is baked in at image build time).
+The agent appears ONLINE within a few seconds — no Monitor `.env` edit, no restart.
 
 ---
 
-## Example: Windows Monitor + Kali agent
+## Upgrades from v1.x
 
-Assume:
+v2.0 is a **hard cut**:
 
-- Monitor PC: `192.168.150.10` (Docker)
-- Kali: `192.168.150.131`
+1. Upgrade Monitor (new Compose publishes `:50051` TLS; generate `certs/`)
+2. Reinstall each agent with `--monitor`, `--token`, and `--ca`
+3. Remove old agent firewall allows for inbound `:50051`
+4. Delete any leftover `AGENTS=` from `.env`
 
-**On Monitor (Windows)**
-
-```powershell
-.\scripts\install-monitor.ps1 `
-  -Agents "kali-01:192.168.150.131:50051" `
-  -PublicHost 192.168.150.10
-```
-
-**On Kali**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01
-
-# allow backend to connect
-sudo ufw allow 50051/tcp   # if ufw is enabled
-```
-
-**Verify**
-
-```bash
-# on Monitor
-curl http://192.168.150.10:8080/healthz
-
-# on Kali
-systemctl status pulsegrid-agent
-```
-
-Open `http://192.168.150.10:3000` — host `kali-01` should appear when connected.
+Registered hosts can later reconnect without a new token (TLS + `serverId`).
 
 ---
 
-## Installer options reference
+## Firewall
 
-### `install-monitor.sh`
-
-| Flag | Meaning |
+| Host | Rule |
 |---|---|
-| `--agents LIST` | `id:host:port,...` for backend |
-| `--public-host HOST` | IP/DNS used in browser WebSocket URL |
-| `--backend-port N` | Host port (default `8080`) |
-| `--dashboard-port N` | Host port (default `3000`) |
-| `--install-dir PATH` | Default `/opt/pulsegrid` |
-| `--branch NAME` | Git branch (default `main`) |
-| `--demo` | Also start Compose demo agents |
-| `--no-start` | Configure only; do not `compose up` |
-
-### `install-agent.sh`
-
-| Flag | Meaning |
-|---|---|
-| `--server-id ID` | **Required** host id in the UI |
-| `--port N` | gRPC listen port (default `50051`) |
-| `--version VER` | Release tag (default: latest), e.g. `v1.2.0` |
-| `--no-systemd` | Binary only |
-| `--no-start` | Install unit but do not start |
-
-### `install-monitor.ps1`
-
-| Parameter | Meaning |
-|---|---|
-| `-Agents` | Same as `--agents` |
-| `-PublicHost` | Same as `--public-host` |
-| `-BackendPort` / `-DashboardPort` | Published ports |
-| `-Demo` | Compose `--profile demo` |
-| `-NoStart` | Write `.env` only |
-
----
-
-## Optional: demo agents inside Compose
-
-For a quick smoke test **without** real hosts (metrics are from containers):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --demo --public-host localhost
-```
-
-Or:
-
-```bash
-AGENTS=web-01:agent-web-01:50051,db-01:agent-db-01:50052 \
-  docker compose --profile demo up -d --build
-```
+| Monitor | ALLOW TCP 50051 (agents), 3000/8080 (operators) |
+| Agent | outbound to Monitor:50051 only |
 
 ---
 
 ## Upgrades
 
-**Monitor**
+**Monitor:** `git pull` + `docker compose up -d --build` (keep `certs/`)
 
-```bash
-cd /opt/pulsegrid
-sudo git pull
-sudo docker compose up -d --build
-```
-
-**Agent**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01 --version v1.2.0
-```
+**Agent:** re-run `install-agent.sh` with `--version vX.Y.Z` (registered hosts can reconnect without a new token)
 
 ---
 
 ## Uninstall
 
-**Agent (systemd)**
+**Agent**
 
 ```bash
 sudo systemctl disable --now pulsegrid-agent
 sudo rm -f /etc/systemd/system/pulsegrid-agent.service /usr/local/bin/pulsegrid-agent
+sudo rm -rf /etc/pulsegrid
 sudo systemctl daemon-reload
 ```
 
@@ -273,8 +136,6 @@ sudo systemctl daemon-reload
 
 ```bash
 cd /opt/pulsegrid
-sudo docker compose down
-# optional: remove DB volume
 sudo docker compose down -v
 sudo rm -rf /opt/pulsegrid
 ```
@@ -285,18 +146,19 @@ sudo rm -rf /opt/pulsegrid
 
 | Symptom | Check |
 |---|---|
-| UI loads, no hosts | `AGENTS` set? Agent listening? `curl :8080/healthz` |
-| Browser WS fails | `NEXT_PUBLIC_WS_URL` must use an address the **browser** can reach (not `backend` Docker DNS) |
-| Backend cannot reach agent | Firewall on agent host; from Monitor try `Test-NetConnection IP -Port 50051` / `nc -vz IP 50051` |
-| Agent on Docker host invisible | Use `host.docker.internal` in `AGENTS` (Compose adds `extra_hosts`) |
-| GHCR pull denied | Package visibility on GitHub → Packages, or `docker login ghcr.io` |
-| Dashboard still points at old WS URL | Rebuild dashboard after changing `NEXT_PUBLIC_WS_URL` |
+| UI loads, no hosts | Enroll + install agent? Token valid? CA trusted? |
+| TLS handshake fails | Agent `--ca` matches Monitor `certs/ca.crt`; SAN includes `--public-host` |
+| Rejected INVALID_TOKEN | Generate a fresh token from Add Agent |
+| Gateway won't start | `certs/server.crt` + `server.key` present and mounted |
 
 ---
 
+## Follow-up (v2.1+)
+
+After registration, Pulsegrid can issue **agent client certificates** and require **mTLS**. v2.0 uses TLS + join tokens for bootstrap; registered hosts reconnect with TLS + `serverId`.
+
 ## Related
 
-- [MONITOR.md](./MONITOR.md) — Monitor package notes  
-- [STATUS.md](./STATUS.md) — stack and project status  
-- [agent/README.md](../agent/README.md) — agent binary, build, Kali deploy  
-- Releases: https://github.com/SokmeanKao/Pulsegrid/releases  
+- Design: `docs/superpowers/specs/2026-09-14-pulsegrid-agent-initiated-gateway-design.md`
+- Plan: `docs/superpowers/plans/2026-09-14-pulsegrid-agent-initiated-gateway.md`
+- Releases: https://github.com/SokmeanKao/Pulsegrid/releases

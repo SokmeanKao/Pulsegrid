@@ -1,74 +1,85 @@
 # Pulsegrid
 
-Live fleet metrics: **agents on each host** → gRPC → **Monitor** (Spring Boot + Timescale + Next.js).
+Live fleet metrics: **agents dial Monitor** over TLS gRPC → Spring Boot + Timescale + Next.js.
 
-**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md)
+**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md) · **Latest:** [v2.0.0](https://github.com/SokmeanKao/Pulsegrid/releases/tag/v2.0.0)
 
 ![Pulsegrid terminal dashboard](docs/images/dashboard-terminal.png)
 
-## What's new in v1.3.0
+## What's new in v2.0.0
 
-- **Terminal dashboard** with GridStack widgets, Lucide icons, and live ECharts
-- **Layout profiles** — Compact / Normal / Show More (one-click resize for the whole board)
-- **Per-widget fullscreen** for deep inspection
-- **Per-server dashboards** saved in the browser (presets + Add Widget)
-- **Theme + locale** preferences (en / km / ko)
-- Richer **process monitoring** (health, top CPU/memory, searchable process list)
+**Breaking:** agents initiate the connection. `AGENTS=` and inbound agent `:50051` are gone.
+
+- **Agent Gateway** on Monitor `:50051` (TLS, LAN CA)
+- Agents dial Monitor with `--monitor` / `--token` / `--ca`
+- **Add Agent** UI generates a join token + install command
+- Runtime registry — hosts appear when they connect (no backend restart)
+- Reconnect with exponential backoff; registered hosts reconnect without a new token
+- Docs/installers rewritten for the agent-initiated model
+
+Also from v1.3.x: terminal dashboard, layout profiles (Compact / Normal / Show More), per-widget fullscreen, themes & locales.
 
 ## Two installables
 
 | Package | What it is | Where it runs |
 |---|---|---|
-| **Pulsegrid Monitor** | DB + backend + UI | Ops server / your laptop (Docker) |
-| **Pulsegrid Agent** | Metrics collector | Each machine you want to watch |
+| **Pulsegrid Monitor** | DB + backend + UI + **Agent Gateway :50051 (TLS)** | Ops server / your laptop (Docker) |
+| **Pulsegrid Agent** | Metrics collector (**dials** Monitor) | Each machine you want to watch |
 
-Agents are **not** part of the default Monitor compose.
+```text
+Agent (outbound TLS) ──► Monitor Gateway :50051 ──► Timescale + WebSocket UI
+```
 
 ---
 
-## Install Monitor (one-liner, Linux)
+## Install Monitor
 
-Full walkthrough (firewall, AGENTS, upgrades, uninstall): **[docs/INSTALL.md](docs/INSTALL.md)**.
+Full walkthrough: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --agents "kali-01:192.168.150.131:50051" --public-host YOUR_LAN_IP
+  | sudo bash -s -- --public-host YOUR_LAN_IP
 ```
 
-Windows (repo already cloned, Docker Desktop running):
+Windows (repo cloned, Docker Desktop):
 
 ```powershell
-.\scripts\install-monitor.ps1 -Agents "local-01:host.docker.internal:50051"
+.\scripts\install-monitor.ps1 -PublicHost localhost
+# or: -PublicHost 192.168.150.10
 ```
 
-Then open http://localhost:3000 (or `http://YOUR_LAN_IP:3000`).
+Opens:
 
-Optional demo agents inside Compose (container metrics only):
+| URL | Purpose |
+|---|---|
+| `http://YOUR_LAN_IP:3000/terminal` | Dashboard |
+| `http://YOUR_LAN_IP:8080/healthz` | Health |
+| `YOUR_LAN_IP:50051` | Agent Gateway (TLS) |
 
-```bash
-sudo bash scripts/install-monitor.sh --demo
-# or: docker compose --profile demo up -d --build
-```
+Then use **+ Add Agent** in the UI.
 
 ---
 
-## Install Agent (separate, each host)
+## Install Agent
 
 ```bash
+# Copy Monitor certs/ca.crt to the agent host first (or download from UI)
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
-  | sudo bash -s -- --server-id kali-01
+  | sudo bash -s -- \
+      --server-id kali-01 \
+      --monitor YOUR_LAN_IP:50051 \
+      --token pg_join_xxxxx \
+      --ca /path/to/ca.crt
 ```
 
 Windows:
 
 ```powershell
-.\scripts\run-agent.ps1 -ServerId local-01
-```
-
-Point Monitor at agents via `.env` / `--agents`:
-
-```text
-AGENTS=kali-01:192.168.150.131:50051,local-01:host.docker.internal:50051
+.\scripts\generate-monitor-certs.ps1 -PublicHost localhost   # on Monitor machine
+.\scripts\run-agent.ps1 -ServerId local-01 `
+  -Monitor localhost:50051 `
+  -Token pg_join_xxxxx `
+  -CaFile .\certs\ca.crt
 ```
 
 See [agent/README.md](agent/README.md).
@@ -77,47 +88,37 @@ See [agent/README.md](agent/README.md).
 
 ## Layout
 
-- `proto/` — shared `monitoring.proto`
-- `agent/` — Go gRPC metrics agent
-- `backend/` — Spring Boot fan-out + `/healthz`
+- `proto/` — shared `monitoring.proto` (`AgentGateway.Connect`)
+- `agent/` — Go agent (gRPC **client**)
+- `backend/` — Spring Boot gateway + WS fan-out
 - `dashboard/` — Next.js live UI
-- `scripts/install-monitor.sh` — Monitor installer
-- `scripts/install-agent.sh` — Agent installer
+- `certs/` — generated locally (gitignored); CA + gateway server cert
+- `scripts/install-monitor.sh` / `install-agent.sh` — installers
 
-## Local development (without full Monitor install)
+## Local development
 
-### Agent
+```powershell
+.\scripts\generate-monitor-certs.ps1 -PublicHost localhost
+copy .env.example .env
+docker compose up -d --build
+```
+
+Agent (separate terminal):
 
 ```powershell
 .\scripts\build-agent.ps1
-.\scripts\run-agent.ps1 -ServerId local-01
+# Enroll via UI or: POST http://localhost:8080/api/agents/enroll
+.\scripts\run-agent.ps1 -ServerId local-01 -Monitor localhost:50051 -Token pg_join_... -CaFile .\certs\ca.crt
 ```
 
-### Backend
-
-```powershell
-$env:AGENTS="local-01:localhost:50051"
-cd backend
-.\gradlew.bat bootRun
-```
-
-### Dashboard
+Dashboard only:
 
 ```powershell
 cd dashboard
 $env:NEXT_PUBLIC_WS_URL="ws://localhost:8080/ws/metrics"
+$env:NEXT_PUBLIC_API_URL="http://localhost:8080"
 npm run dev
 ```
-
-## Docker Compose (Monitor)
-
-```powershell
-copy .env.example .env   # set AGENTS=...
-docker compose up -d --build
-```
-
-- Dashboard: http://localhost:3000  
-- Backend: http://localhost:8080/healthz  
 
 ## Proto regeneration (Go)
 
@@ -130,5 +131,5 @@ protoc --proto_path=proto `
 
 ## Design / plan
 
-- Spec: `docs/superpowers/specs/2026-09-13-pulsegrid-design.md`
-- Agent release: `docs/superpowers/specs/2026-09-13-pulsegrid-agent-release-design.md`
+- **v2.0 gateway:** `docs/superpowers/specs/2026-09-14-pulsegrid-agent-initiated-gateway-design.md`
+- **Plan:** `docs/superpowers/plans/2026-09-14-pulsegrid-agent-initiated-gateway.md`

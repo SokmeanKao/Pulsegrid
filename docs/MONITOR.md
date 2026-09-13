@@ -1,59 +1,64 @@
 # Pulsegrid Monitor
 
-Control plane: **TimescaleDB + Spring Boot backend + Next.js UI**.
+The Monitor is the control plane: TimescaleDB + Spring Boot (API, WebSocket, **Agent Gateway**) + Next.js UI.
 
-Full install walkthrough: **[INSTALL.md](./INSTALL.md)**.  
-Agents are installed separately ([agent/README.md](../agent/README.md)).
+Agents **dial** the Monitor. There is no `AGENTS=` list.
 
-## Quick start
+## Install
 
 ```bash
-# Linux one-liner
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --agents "kali-01:HOST_IP:50051" --public-host MONITOR_IP
+  | sudo bash -s -- --public-host MONITOR_IP
 ```
+
+Windows:
 
 ```powershell
-# Windows (from repo root)
-.\scripts\install-monitor.ps1 -Agents "local-01:host.docker.internal:50051"
+.\scripts\install-monitor.ps1 -PublicHost MONITOR_IP
 ```
 
+Or from a checkout:
+
 ```bash
-# From a git checkout
-cp .env.example .env   # edit AGENTS=
+./scripts/generate-monitor-certs.sh --public-host MONITOR_IP
+cp .env.example .env   # set GATEWAY_ADVERTISE_HOST, NEXT_PUBLIC_WS_URL
 docker compose up -d --build
 ```
 
-| URL | Service |
+## Ports
+
+| Port | Service |
 |---|---|
-| http://localhost:3000 | Dashboard (GUI) |
-| http://localhost:3000/terminal | Terminal view |
-| http://localhost:8080/healthz | Backend health |
-| ws://localhost:8080/ws/metrics | Live metrics |
+| 3000 | Dashboard |
+| 8080 | API + WebSocket |
+| 50051 | Agent Gateway (TLS) |
 
-## Configuration (`.env`)
+## Env (`.env`)
 
-| Variable | Purpose |
+| Var | Purpose |
 |---|---|
-| `AGENTS` | `id:host:port,...` — hosts the backend dials |
-| `NEXT_PUBLIC_WS_URL` | WebSocket URL the **browser** uses |
-| `BACKEND_PORT` / `DASHBOARD_PORT` | Published host ports |
+| `NEXT_PUBLIC_WS_URL` | Browser WebSocket URL (`ws://MONITOR_IP:8080/ws/metrics`) |
+| `NEXT_PUBLIC_API_URL` | Browser API base (`http://MONITOR_IP:8080`) |
+| `GATEWAY_ADVERTISE_HOST` | Host shown in Add Agent install commands |
+| `GATEWAY_PORT` | Published gateway port (default `50051`) |
 
-`host.docker.internal` reaches an agent on the Docker host (Desktop / Compose `extra_hosts`).
+TLS material lives in `./certs` (`ca.crt`, `server.crt`, `server.key`) from `scripts/generate-monitor-certs.*`.
 
-## Demo agents (optional)
+## Add agents
 
-In-compose agents only show **container** metrics — useful for smoke tests:
+Use **+ Add Agent** in the UI, or:
 
-```bash
-AGENTS=web-01:agent-web-01:50051,db-01:agent-db-01:50052 \
-  docker compose --profile demo up -d --build
+```http
+POST /api/agents/enroll
+{ "serverId": "kali-01" }
 ```
 
-## vs Agent
+Then install the agent with `--monitor`, `--token`, and `--ca`. See [INSTALL.md](./INSTALL.md).
 
-| | Monitor | Agent |
-|---|---|---|
-| Install | `install-monitor.sh` | `install-agent.sh` |
-| Runs | Docker Compose | Binary / systemd / GHCR |
-| Role | Store + visualize | Collect host metrics |
+## Demo profile
+
+```bash
+docker compose --profile demo up -d --build
+```
+
+Demo agents dial `backend:50051` and need join tokens (`DEMO_JOIN_TOKEN_WEB` / `DEMO_JOIN_TOKEN_DB`) plus mounted `certs/`.

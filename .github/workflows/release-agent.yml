@@ -70,15 +70,21 @@ jobs:
 
             ```bash
             curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install-agent.sh \
-              | sudo bash -s -- --server-id YOUR_HOST_ID --version ${{ steps.ver.outputs.tag }}
+              | sudo bash -s -- --server-id YOUR_HOST_ID \
+                  --monitor MONITOR_IP:50051 --token pg_join_… --ca /path/ca.crt \
+                  --version ${{ steps.ver.outputs.tag }}
             ```
 
             ## Container (GHCR)
 
             ```bash
             docker pull ghcr.io/${{ github.repository_owner }}/pulsegrid-agent:${{ steps.ver.outputs.tag }}
-            docker run --rm --net=host \
-              -e SERVER_ID=YOUR_HOST_ID -e PORT=50051 \
+            docker run --rm \
+              -e SERVER_ID=YOUR_HOST_ID \
+              -e MONITOR_ADDRESS=MONITOR_IP:50051 \
+              -e JOIN_TOKEN=pg_join_… \
+              -e MONITOR_CA_FILE=/certs/ca.crt \
+              -v /path/to/ca.crt:/certs/ca.crt:ro \
               ghcr.io/${{ github.repository_owner }}/pulsegrid-agent:${{ steps.ver.outputs.tag }}
             ```
 
