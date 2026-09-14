@@ -109,9 +109,7 @@ GHCR packages default to **private**. Either:
 
 1. Open `http://MONITOR_IP:8080/terminal/`
 2. Hosts sidebar → **+ Add Agent** → enter id (e.g. `kali-01`) → **Generate install materials**
-3. Pick an OS tab (Linux / Git Bash / PowerShell / Docker), copy the command, download **ca.crt**, or scan the QR  
-   - QR opens `/enroll/?s=…&t=…` on another device (same materials)  
-   - Optional toggle encodes the Linux one-liner in the QR instead
+3. Pick a **platform** tab (Linux / Windows · Git Bash / Windows · PowerShell / Docker), copy the command, and download **ca.crt**
 
 You still need:
 
