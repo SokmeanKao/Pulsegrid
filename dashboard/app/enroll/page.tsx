@@ -49,7 +49,7 @@ function EnrollInner() {
     return (
       <div className="min-h-screen bg-[var(--t-bg)] p-4 font-mono text-xs text-[var(--t-text)]">
         <p className="text-[var(--t-critical)]">Missing enroll parameters (s, t).</p>
-        <Link href="/terminal/" className="text-[var(--t-info)] underline">
+        <Link href="/terminal" className="text-[var(--t-info)] underline">
           Back to dashboard
         </Link>
       </div>
@@ -61,7 +61,7 @@ function EnrollInner() {
       <div className="mx-auto max-w-2xl space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <h1 className="font-mono text-sm text-[var(--t-info)]">Pulsegrid — Enroll agent</h1>
-          <Link href="/terminal/" className="font-mono text-[10px] text-[var(--t-muted)] hover:text-[var(--t-info)]">
+          <Link href="/terminal" className="font-mono text-[10px] text-[var(--t-muted)] hover:text-[var(--t-info)]">
             Dashboard
           </Link>
         </div>

@@ -36,7 +36,7 @@ export function buildEnrollmentMaterials(input: {
   const monitorAddress = `${input.advertiseHost.trim() || "localhost"}:${input.gatewayPort || 50051}`;
   const httpBase = publicHttpBase(input.advertiseHost, input.httpPort);
   const caUrl = `${httpBase}/api/agents/ca.crt`;
-  const enrollUrl = `${httpBase}/enroll/?s=${encodeURIComponent(serverId)}&t=${encodeURIComponent(token)}`;
+  const enrollUrl = `${httpBase}/enroll?s=${encodeURIComponent(serverId)}&t=${encodeURIComponent(token)}`;
 
   const linux =
     `sudo mkdir -p /etc/pulsegrid && sudo curl -fsSL ${caUrl} -o /etc/pulsegrid/ca.crt && ` +

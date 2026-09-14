@@ -51,7 +51,7 @@ public class EnrollmentController {
 		String httpBase = AgentInstallCommands.publicHttpBase(advertiseHost, httpPort);
 		String caUrl = httpBase + "/api/agents/ca.crt";
 		String enrollUrl = httpBase
-				+ "/enroll/?s="
+				+ "/enroll?s="
 				+ URLEncoder.encode(created.serverId(), StandardCharsets.UTF_8)
 				+ "&t="
 				+ URLEncoder.encode(created.token(), StandardCharsets.UTF_8);
