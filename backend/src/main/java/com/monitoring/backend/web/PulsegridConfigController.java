@@ -1,5 +1,6 @@
 package com.monitoring.backend.web;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +20,31 @@ public class PulsegridConfigController {
 	@Value("${PULSEGRID_WS_URL:}")
 	private String wsUrl;
 
+	@Value("${GATEWAY_ADVERTISE_HOST:localhost}")
+	private String advertiseHost;
+
+	@Value("${GATEWAY_PORT:50051}")
+	private int gatewayPort;
+
+	@Value("${GATEWAY_HTTP_PORT:8080}")
+	private int httpPort;
+
+	@Value("${PULSEGRID_AGENT_VERSION:v2.3.3}")
+	private String agentVersion;
+
 	@GetMapping("/pulsegrid-config")
 	public ResponseEntity<Map<String, Object>> config() {
-		return ResponseEntity.ok(Map.of(
-				"sameOrigin", sameOrigin,
-				"apiUrl", apiUrl == null ? "" : apiUrl.trim(),
-				"wsUrl", wsUrl == null ? "" : wsUrl.trim(),
-				"backendPort", ""));
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("sameOrigin", sameOrigin);
+		body.put("apiUrl", apiUrl == null ? "" : apiUrl.trim());
+		body.put("wsUrl", wsUrl == null ? "" : wsUrl.trim());
+		body.put("backendPort", "");
+		body.put("advertiseHost", advertiseHost == null || advertiseHost.isBlank() ? "localhost" : advertiseHost.trim());
+		body.put("gatewayPort", gatewayPort);
+		body.put("httpPort", httpPort);
+		body.put(
+				"agentVersion",
+				agentVersion == null || agentVersion.isBlank() ? "v2.3.3" : agentVersion.trim());
+		return ResponseEntity.ok(body);
 	}
 }

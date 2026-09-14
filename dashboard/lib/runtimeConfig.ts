@@ -4,14 +4,45 @@ export type PulsegridRuntimeConfig = {
   apiUrl: string;
   wsUrl: string;
   backendPort: string;
+  advertiseHost: string;
+  gatewayPort: number;
+  httpPort: number;
+  agentVersion: string;
 };
 
+function defaultsFromWindow(): Pick<
+  PulsegridRuntimeConfig,
+  "advertiseHost" | "gatewayPort" | "httpPort" | "agentVersion"
+> {
+  if (typeof window === "undefined") {
+    return {
+      advertiseHost: "localhost",
+      gatewayPort: 50051,
+      httpPort: 8080,
+      agentVersion: "v2.3.3",
+    };
+  }
+  const port = window.location.port
+    ? Number(window.location.port)
+    : window.location.protocol === "https:"
+      ? 443
+      : 80;
+  return {
+    advertiseHost: window.location.hostname || "localhost",
+    gatewayPort: 50051,
+    httpPort: port === 80 || port === 443 ? port : port || 8080,
+    agentVersion: "v2.3.3",
+  };
+}
+
 function sameOriginFromWindow(): PulsegridRuntimeConfig {
+  const d = defaultsFromWindow();
   if (typeof window === "undefined") {
     return {
       apiUrl: "http://localhost",
       wsUrl: "ws://localhost/ws/metrics",
       backendPort: "80",
+      ...d,
     };
   }
   const wsProto = window.location.protocol === "https:" ? "wss" : "ws";
@@ -19,15 +50,19 @@ function sameOriginFromWindow(): PulsegridRuntimeConfig {
     apiUrl: window.location.origin,
     wsUrl: `${wsProto}://${window.location.host}/ws/metrics`,
     backendPort: window.location.port || (window.location.protocol === "https:" ? "443" : "80"),
+    ...d,
   };
 }
 
 function splitPortsFromWindow(backendPort: string): PulsegridRuntimeConfig {
+  const d = defaultsFromWindow();
   if (typeof window === "undefined") {
     return {
       apiUrl: `http://localhost:${backendPort}`,
       wsUrl: `ws://localhost:${backendPort}/ws/metrics`,
       backendPort,
+      ...d,
+      httpPort: Number(backendPort) || d.httpPort,
     };
   }
   const host = window.location.hostname || "localhost";
@@ -36,6 +71,9 @@ function splitPortsFromWindow(backendPort: string): PulsegridRuntimeConfig {
     apiUrl: `http://${host}:${backendPort}`,
     wsUrl: `${wsProto}://${host}:${backendPort}/ws/metrics`,
     backendPort,
+    ...d,
+    advertiseHost: host,
+    httpPort: Number(backendPort) || d.httpPort,
   };
 }
 
@@ -45,6 +83,10 @@ export async function loadPulsegridConfig(): Promise<PulsegridRuntimeConfig> {
   let backendPort = "";
   let apiUrl = "";
   let wsUrl = "";
+  let advertiseHost = "";
+  let gatewayPort = 0;
+  let httpPort = 0;
+  let agentVersion = "";
 
   try {
     const res = await fetch("/pulsegrid-config", { cache: "no-store" });
@@ -54,11 +96,19 @@ export async function loadPulsegridConfig(): Promise<PulsegridRuntimeConfig> {
         apiUrl?: string;
         wsUrl?: string;
         backendPort?: string;
+        advertiseHost?: string;
+        gatewayPort?: number | string;
+        httpPort?: number | string;
+        agentVersion?: string;
       };
       if (typeof j.sameOrigin === "boolean") sameOrigin = j.sameOrigin;
       apiUrl = (j.apiUrl ?? "").trim();
       wsUrl = (j.wsUrl ?? "").trim();
       backendPort = (j.backendPort ?? "").trim();
+      advertiseHost = (j.advertiseHost ?? "").trim();
+      gatewayPort = Number(j.gatewayPort) || 0;
+      httpPort = Number(j.httpPort) || 0;
+      agentVersion = (j.agentVersion ?? "").trim();
     }
   } catch {
     /* ignore */
@@ -67,20 +117,29 @@ export async function loadPulsegridConfig(): Promise<PulsegridRuntimeConfig> {
   if (!apiUrl) apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
   if (!wsUrl) wsUrl = process.env.NEXT_PUBLIC_WS_URL?.trim() || "";
 
-  // Explicit URLs win; else same-origin (nginx); else split ports.
-  if (apiUrl && wsUrl) {
-    return { apiUrl, wsUrl, backendPort: backendPort || "8080" };
-  }
-
   const derived =
     sameOrigin || !backendPort
       ? sameOriginFromWindow()
       : splitPortsFromWindow(backendPort);
 
+  const base =
+    apiUrl && wsUrl
+      ? {
+          apiUrl,
+          wsUrl,
+          backendPort: backendPort || "8080",
+          ...defaultsFromWindow(),
+        }
+      : derived;
+
   return {
     apiUrl: apiUrl || derived.apiUrl,
     wsUrl: wsUrl || derived.wsUrl,
     backendPort: backendPort || derived.backendPort,
+    advertiseHost: advertiseHost || base.advertiseHost,
+    gatewayPort: gatewayPort || base.gatewayPort,
+    httpPort: httpPort || base.httpPort,
+    agentVersion: agentVersion || base.agentVersion,
   };
 }
 
