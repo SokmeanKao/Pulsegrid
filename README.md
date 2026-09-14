@@ -2,9 +2,14 @@
 
 Live fleet metrics: **agents dial Monitor** over TLS gRPC → Spring Boot + Timescale + Next.js.
 
-**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md) · **Latest:** [v2.1.0](https://github.com/SokmeanKao/Pulsegrid/releases/tag/v2.1.0)
+**Install guide:** [docs/INSTALL.md](docs/INSTALL.md) · **Status:** [docs/STATUS.md](docs/STATUS.md) · **Latest Monitor:** [v2.3.3](https://github.com/SokmeanKao/Pulsegrid/pkgs/container/pulsegrid-monitor)
 
 ![Pulsegrid terminal dashboard](docs/images/dashboard-terminal.png)
+
+## What's new in v2.3.3
+
+- **Auto Gateway TLS** — empty cert volume is fine; Spring generates CA/server PEMs on first start
+- Default HTTP **8080** (avoids Windows :80 lock); export CA with `docker compose cp monitor:/certs/ca.crt ./ca.crt`
 
 ## What's new in v2.3.0
 
@@ -57,80 +62,66 @@ Agent (outbound TLS) ──► Monitor Gateway :50051 ──► Timescale + WebS
 
 ## Install Monitor
 
-**No clone (recommended)** — one Monitor image on port **80** + Agent Gateway **50051**:
+**No clone (recommended)** — one image, HTTP **8080** + Agent Gateway **50051**. Full steps: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
-**Windows** (Docker Desktop; no sudo):
+```bash
+mkdir -p pulsegrid-monitor && cd pulsegrid-monitor
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
+cat > .env <<'EOF'
+GATEWAY_ADVERTISE_HOST=YOUR_LAN_IP
+HTTP_PORT=8080
+GATEWAY_PORT=50051
+PULSEGRID_VERSION=v2.3.3
+PULSEGRID_IMAGE_OWNER=sokmeankao
+EOF
+docker compose pull && docker compose up -d
+docker compose cp monitor:/certs/ca.crt ./ca.crt
+```
+
+Windows installer:
 
 ```powershell
 irm https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.ps1 -OutFile $env:TEMP\pg-mon.ps1
-powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost YOUR_LAN_IP
+powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost YOUR_LAN_IP -Version v2.3.3
 ```
-
-**Linux / WSL:**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
-  | bash -s -- --public-host YOUR_LAN_IP
-```
-
-**Raw compose:**
-
-```text
-https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
-```
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
-```
-
-**From source** (clone + build): full walkthrough in **[docs/INSTALL.md](docs/INSTALL.md)**.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --public-host YOUR_LAN_IP
-```
-
-Windows (repo cloned):
-
-```powershell
-.\scripts\install-monitor.ps1 -PublicHost localhost
-```
-
-Opens:
 
 | URL | Purpose |
 |---|---|
-| `http://YOUR_LAN_IP/terminal/` | Dashboard |
-| `http://YOUR_LAN_IP/healthz` | Health |
+| `http://YOUR_LAN_IP:8080/terminal/` | Dashboard |
+| `http://YOUR_LAN_IP:8080/healthz` | Health |
 | `YOUR_LAN_IP:50051` | Agent Gateway (TLS) |
-
-Then use **+ Add Agent** in the UI.
 
 ---
 
 ## Install Agent
 
+1. Export Monitor CA: `docker compose cp monitor:/certs/ca.crt ./ca.crt`
+2. UI **+ Add Agent** (or `POST /api/agents/enroll`) → copy token
+3. On the agent host:
+
+**Linux:**
+
 ```bash
-# Copy Monitor certs/ca.crt to the agent host first (or download from UI)
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
   | sudo bash -s -- \
       --server-id kali-01 \
       --monitor YOUR_LAN_IP:50051 \
       --token pg_join_xxxxx \
-      --ca /path/to/ca.crt
+      --ca /path/to/ca.crt \
+      --version v2.3.3
 ```
 
-Windows:
+**Windows:** download `pulsegrid-agent-windows-amd64.exe` from [Releases](https://github.com/SokmeanKao/Pulsegrid/releases), then:
 
 ```powershell
-.\scripts\generate-monitor-certs.ps1 -PublicHost localhost   # on Monitor machine
-.\scripts\run-agent.ps1 -ServerId local-01 `
-  -Monitor localhost:50051 `
-  -Token pg_join_xxxxx `
-  -CaFile .\certs\ca.crt
+$env:SERVER_ID = "win-01"
+$env:MONITOR_ADDRESS = "YOUR_LAN_IP:50051"
+$env:JOIN_TOKEN = "pg_join_xxxxx"
+$env:MONITOR_CA_FILE = "C:\path\to\ca.crt"
+.\pulsegrid-agent-windows-amd64.exe
 ```
 
-See [agent/README.md](agent/README.md).
+Details: [docs/INSTALL.md](docs/INSTALL.md) · [agent/README.md](agent/README.md).
 
 ---
 

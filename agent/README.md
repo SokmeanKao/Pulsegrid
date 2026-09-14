@@ -20,22 +20,38 @@ The agent does **not** listen on a port.
 ## Install (Linux one-liner)
 
 ```bash
+# Copy Monitor ca.crt to this host first (from Monitor: docker compose cp monitor:/certs/ca.crt ./ca.crt)
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
   | sudo bash -s -- \
       --server-id kali-01 \
       --monitor MONITOR_IP:50051 \
       --token pg_join_xxxxx \
-      --ca /path/to/ca.crt
+      --ca /path/to/ca.crt \
+      --version v2.3.3
 ```
 
-## Windows (from repo)
+## Windows (release binary)
+
+1. Download `pulsegrid-agent-windows-amd64.exe` from [Releases](https://github.com/SokmeanKao/Pulsegrid/releases).
+2. Copy Monitor `ca.crt` to the machine.
+3. Run:
+
+```powershell
+$env:SERVER_ID = "win-01"
+$env:MONITOR_ADDRESS = "MONITOR_IP:50051"
+$env:JOIN_TOKEN = "pg_join_xxxxx"
+$env:MONITOR_CA_FILE = "C:\path\to\ca.crt"
+.\pulsegrid-agent-windows-amd64.exe
+```
+
+From a repo checkout:
 
 ```powershell
 .\scripts\build-agent.ps1
 .\scripts\run-agent.ps1 -ServerId local-01 `
   -Monitor localhost:50051 `
   -Token pg_join_xxxxx `
-  -CaFile .\certs\ca.crt
+  -CaFile .\ca.crt
 ```
 
 ## Container
@@ -43,11 +59,11 @@ curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/i
 ```bash
 docker run --rm \
   -e SERVER_ID=kali-01 \
-  -e MONITOR_ADDRESS=192.168.150.10:50051 \
+  -e MONITOR_ADDRESS=MONITOR_IP:50051 \
   -e JOIN_TOKEN=pg_join_xxxxx \
   -e MONITOR_CA_FILE=/certs/ca.crt \
   -v /path/to/ca.crt:/certs/ca.crt:ro \
-  ghcr.io/sokmeankao/pulsegrid-agent:latest
+  ghcr.io/sokmeankao/pulsegrid-agent:v2.3.3
 ```
 
 ## Optional: Docker access
