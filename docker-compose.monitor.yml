@@ -46,6 +46,8 @@ services:
       GATEWAY_CA_CERT: /certs/ca.crt
       GATEWAY_CERT_DIR: /certs
       GATEWAY_ADVERTISE_HOST: ${GATEWAY_ADVERTISE_HOST:-localhost}
+      GATEWAY_HTTP_PORT: ${HTTP_PORT:-8080}
+      PULSEGRID_AGENT_VERSION: ${PULSEGRID_AGENT_VERSION:-v2.3.3}
       PULSEGRID_SAME_ORIGIN: "true"
       PULSEGRID_UI_DIR: file:/app/ui/
     ports:

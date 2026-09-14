@@ -105,19 +105,23 @@ GHCR packages default to **private**. Either:
 
 ## 2. Install Agent
 
-You need three things from the Monitor:
+### A) Enroll from the UI (recommended)
+
+1. Open `http://MONITOR_IP:8080/terminal/`
+2. Hosts sidebar → **+ Add Agent** → enter id (e.g. `kali-01`) → **Generate install materials**
+3. Pick an OS tab (Linux / Git Bash / PowerShell / Docker), copy the command, download **ca.crt**, or scan the QR  
+   - QR opens `/enroll/?s=…&t=…` on another device (same materials)  
+   - Optional toggle encodes the Linux one-liner in the QR instead
+
+You still need:
 
 | Item | How to get it |
 |---|---|
-| **CA** | `ca.crt` from Monitor (`docker compose cp monitor:/certs/ca.crt ./ca.crt`) |
-| **Join token** | UI **+ Add Agent**, or `POST /api/agents/enroll` |
+| **CA** | Download from the modal, or `docker compose cp monitor:/certs/ca.crt ./ca.crt` |
+| **Join token** | Shown in the modal (also in commands / enroll URL) |
 | **Monitor address** | `MONITOR_IP:50051` (same IP as `GATEWAY_ADVERTISE_HOST`) |
 
-### A) Enroll (get a token)
-
-**UI (easiest):** open `http://MONITOR_IP:8080/terminal/` → **+ Add Agent** → enter id (e.g. `kali-01`) → copy the install command.
-
-**API:**
+**API alternative:**
 
 ```bash
 curl -sS -X POST http://MONITOR_IP:8080/api/agents/enroll \
@@ -125,11 +129,9 @@ curl -sS -X POST http://MONITOR_IP:8080/api/agents/enroll \
   -d '{"serverId":"kali-01"}'
 ```
 
-Response includes `token` (`pg_join_…`), `monitorAddress`, and `installCommand`.
+Response includes `token`, `monitorAddress`, `caUrl`, `enrollUrl`, and `commands` for each OS.
 
-Copy `ca.crt` to the agent host (scp, USB, shared folder, etc.).
-
-### B) Linux agent (recommended)
+### B) Linux agent (CLI)
 
 Run these commands **on the Linux agent host** (Kali, Ubuntu, etc.) — not in Windows Git Bash.
 

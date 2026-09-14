@@ -1,26 +1,44 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { iconMd, iconStroke } from "@/lib/dashboard/icons";
+import { buildEnrollmentMaterials, type EnrollmentCommands } from "@/lib/enrollmentCommands";
 import { loadPulsegridConfig } from "@/lib/runtimeConfig";
-import { cn } from "@/lib/utils";
+import { EnrollmentMaterials } from "@/components/agents/EnrollmentMaterials";
 
 type Props = {
   open: boolean;
   onClose: () => void;
 };
 
+type EnrollResponse = {
+  serverId: string;
+  token: string;
+  expiresAt: string;
+  monitorAddress: string;
+  caUrl?: string;
+  enrollUrl?: string;
+  installCommand: string;
+  commands?: EnrollmentCommands;
+};
+
+type ResultState = {
+  serverId: string;
+  token: string;
+  expiresAt: string;
+  monitorAddress: string;
+  caUrl: string;
+  enrollUrl: string;
+  commands: EnrollmentCommands;
+  installCommand: string;
+};
+
 export function AddAgentModal({ open, onClose }: Props) {
   const [serverId, setServerId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{
-    token: string;
-    monitorAddress: string;
-    installCommand: string;
-    caUrl: string;
-  } | null>(null);
+  const [result, setResult] = useState<ResultState | null>(null);
 
   if (!open) return null;
 
@@ -29,8 +47,8 @@ export function AddAgentModal({ open, onClose }: Props) {
     setError(null);
     setResult(null);
     try {
-      const { apiUrl } = await loadPulsegridConfig();
-      const res = await fetch(`${apiUrl}/api/agents/enroll`, {
+      const cfg = await loadPulsegridConfig();
+      const res = await fetch(`${cfg.apiUrl}/api/agents/enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ serverId: serverId.trim() }),
@@ -38,15 +56,32 @@ export function AddAgentModal({ open, onClose }: Props) {
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
-      const data = (await res.json()) as {
-        token: string;
-        monitorAddress: string;
-        installCommand: string;
-      };
-      setResult({
-        ...data,
-        caUrl: `${apiUrl}/api/agents/ca.crt`,
-      });
+      const data = (await res.json()) as EnrollResponse;
+      if (data.commands && data.caUrl && data.enrollUrl) {
+        setResult({
+          serverId: data.serverId,
+          token: data.token,
+          expiresAt: data.expiresAt,
+          monitorAddress: data.monitorAddress,
+          caUrl: data.caUrl,
+          enrollUrl: data.enrollUrl,
+          commands: data.commands,
+          installCommand: data.installCommand || data.commands.linux,
+        });
+      } else {
+        const built = buildEnrollmentMaterials({
+          serverId: data.serverId,
+          token: data.token,
+          advertiseHost: cfg.advertiseHost,
+          gatewayPort: cfg.gatewayPort,
+          httpPort: cfg.httpPort,
+          agentVersion: cfg.agentVersion,
+        });
+        setResult({
+          ...built,
+          expiresAt: data.expiresAt,
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Enroll failed");
     } finally {
@@ -54,17 +89,9 @@ export function AddAgentModal({ open, onClose }: Props) {
     }
   }
 
-  async function copy(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      /* ignore */
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-lg border border-[var(--t-border)] bg-[var(--t-panel)] p-4 font-mono text-xs text-[var(--t-text)]">
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto border border-[var(--t-border)] bg-[var(--t-panel)] p-4 font-mono text-xs text-[var(--t-text)]">
         <div className="mb-3 flex items-center justify-between text-[var(--t-info)]">
           <span className="inline-flex items-center gap-1.5 uppercase tracking-wider">
             <Plus className={iconMd} strokeWidth={iconStroke} aria-hidden />
@@ -93,38 +120,12 @@ export function AddAgentModal({ open, onClose }: Props) {
               onClick={() => void enroll()}
               className="border border-[var(--t-info)] px-3 py-1 text-[var(--t-info)] disabled:opacity-40"
             >
-              {busy ? "Creating…" : "Generate install command"}
+              {busy ? "Creating…" : "Generate install materials"}
             </button>
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-[var(--t-muted)]">
-              Run on the agent host (copy CA from Monitor first if needed):
-            </p>
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all border border-[var(--t-border)] bg-[var(--t-bg)] p-2">
-              {result.installCommand}
-            </pre>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 border border-[var(--t-border)] px-2 py-1 hover:text-[var(--t-info)]"
-                onClick={() => void copy(result.installCommand)}
-              >
-                <Copy className={iconMd} strokeWidth={iconStroke} aria-hidden />
-                Copy command
-              </button>
-              <a
-                className="border border-[var(--t-border)] px-2 py-1 hover:text-[var(--t-info)]"
-                href={result.caUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Download ca.crt
-              </a>
-            </div>
-            <p className={cn("text-[10px] text-[var(--t-muted)]")}>
-              Monitor gateway: {result.monitorAddress} · token expires in 24h
-            </p>
+            <EnrollmentMaterials {...result} />
             <button
               type="button"
               className="border border-[var(--t-border)] px-2 py-1"
