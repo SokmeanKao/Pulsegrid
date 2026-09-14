@@ -1,7 +1,7 @@
 # Pulsegrid — Rich Agent Enrollment UI Design
 
 **Date:** 2026-09-14  
-**Status:** Draft for review  
+**Status:** Approved / implemented  
 **Scope:** Enrich **+ Add Agent** modal + enroll landing page + API command variants + shadcn QR
 
 ## Goal
