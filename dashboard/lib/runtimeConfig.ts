@@ -117,6 +117,22 @@ export async function loadPulsegridConfig(): Promise<PulsegridRuntimeConfig> {
   if (!apiUrl) apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
   if (!wsUrl) wsUrl = process.env.NEXT_PUBLIC_WS_URL?.trim() || "";
 
+  // Next.js dev / split compose: UI on :3000, API on :8080 — never treat UI origin as API.
+  if (
+    !apiUrl &&
+    typeof window !== "undefined" &&
+    (window.location.port === "3000" || window.location.port === "3001")
+  ) {
+    const host = window.location.hostname || "localhost";
+    apiUrl = `http://${host}:8080`;
+    if (!wsUrl) {
+      const wsProto = window.location.protocol === "https:" ? "wss" : "ws";
+      wsUrl = `${wsProto}://${host}:8080/ws/metrics`;
+    }
+    sameOrigin = false;
+    backendPort = backendPort || "8080";
+  }
+
   const derived =
     sameOrigin || !backendPort
       ? sameOriginFromWindow()
