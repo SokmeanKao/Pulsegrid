@@ -111,15 +111,19 @@ curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/i
       --version v2.3.3
 ```
 
-**Windows:** download `pulsegrid-agent-windows-amd64.exe` from [Releases](https://github.com/SokmeanKao/Pulsegrid/releases), then:
+**Windows** — do **not** use `install-agent.sh` (Linux-only). In **Git Bash**:
 
-```powershell
-$env:SERVER_ID = "win-01"
-$env:MONITOR_ADDRESS = "YOUR_LAN_IP:50051"
-$env:JOIN_TOKEN = "pg_join_xxxxx"
-$env:MONITOR_CA_FILE = "C:\path\to\ca.crt"
-.\pulsegrid-agent-windows-amd64.exe
+```bash
+mkdir -p /c/pulsegrid
+cp /path/to/ca.crt /c/pulsegrid/ca.crt
+curl -fL "https://github.com/SokmeanKao/Pulsegrid/releases/download/v2.3.3/pulsegrid-agent-windows-amd64.exe" \
+  -o /c/pulsegrid/pulsegrid-agent.exe
+export SERVER_ID=window-01 MONITOR_ADDRESS=YOUR_LAN_IP:50051
+export JOIN_TOKEN=pg_join_xxxxx MONITOR_CA_FILE=/c/pulsegrid/ca.crt
+/c/pulsegrid/pulsegrid-agent.exe
 ```
+
+Or in **PowerShell** (not Git Bash): download `pulsegrid-agent-windows-amd64.exe` from [Releases](https://github.com/SokmeanKao/Pulsegrid/releases), then set `$env:SERVER_ID`, `$env:MONITOR_ADDRESS`, `$env:JOIN_TOKEN`, `$env:MONITOR_CA_FILE` and run the exe.
 
 Details: [docs/INSTALL.md](docs/INSTALL.md) · [agent/README.md](agent/README.md).
 

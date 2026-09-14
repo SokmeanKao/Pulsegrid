@@ -17,31 +17,61 @@ Full product install guide: **[docs/INSTALL.md](../docs/INSTALL.md)**.
 
 The agent does **not** listen on a port.
 
-## Install (Linux one-liner)
+## Install (Linux)
+
+Run on the **Linux** agent host only. `install-agent.sh` needs `sudo` / systemd — it will not work in Windows Git Bash.
 
 ```bash
-# Copy Monitor ca.crt to this host first (from Monitor: docker compose cp monitor:/certs/ca.crt ./ca.crt)
+# On Monitor: docker compose cp monitor:/certs/ca.crt ./ca.crt
+# Copy ca.crt to this Linux host, then:
+sudo mkdir -p /etc/pulsegrid
+sudo cp /path/to/ca.crt /etc/pulsegrid/ca.crt
+
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
   | sudo bash -s -- \
       --server-id kali-01 \
       --monitor MONITOR_IP:50051 \
       --token pg_join_xxxxx \
-      --ca /path/to/ca.crt \
+      --ca /etc/pulsegrid/ca.crt \
       --version v2.3.3
 ```
 
 ## Windows (release binary)
 
-1. Download `pulsegrid-agent-windows-amd64.exe` from [Releases](https://github.com/SokmeanKao/Pulsegrid/releases).
-2. Copy Monitor `ca.crt` to the machine.
-3. Run:
+Do **not** use `install-agent.sh` or `sudo` on Windows.
+
+### Git Bash (MINGW64)
+
+```bash
+mkdir -p /c/pulsegrid
+cp /path/to/monitor/ca.crt /c/pulsegrid/ca.crt
+
+curl -fL "https://github.com/SokmeanKao/Pulsegrid/releases/download/v2.3.3/pulsegrid-agent-windows-amd64.exe" \
+  -o /c/pulsegrid/pulsegrid-agent.exe
+
+export SERVER_ID=window-01
+export MONITOR_ADDRESS=MONITOR_IP:50051
+export JOIN_TOKEN='pg_join_xxxxx'
+export MONITOR_CA_FILE=/c/pulsegrid/ca.crt
+
+/c/pulsegrid/pulsegrid-agent.exe
+```
+
+### PowerShell (not Git Bash)
 
 ```powershell
-$env:SERVER_ID = "win-01"
+New-Item -ItemType Directory -Force -Path C:\pulsegrid | Out-Null
+Copy-Item C:\path\to\ca.crt C:\pulsegrid\ca.crt -Force
+
+Invoke-WebRequest `
+  -Uri "https://github.com/SokmeanKao/Pulsegrid/releases/download/v2.3.3/pulsegrid-agent-windows-amd64.exe" `
+  -OutFile C:\pulsegrid\pulsegrid-agent.exe
+
+$env:SERVER_ID = "window-01"
 $env:MONITOR_ADDRESS = "MONITOR_IP:50051"
 $env:JOIN_TOKEN = "pg_join_xxxxx"
-$env:MONITOR_CA_FILE = "C:\path\to\ca.crt"
-.\pulsegrid-agent-windows-amd64.exe
+$env:MONITOR_CA_FILE = "C:\pulsegrid\ca.crt"
+C:\pulsegrid\pulsegrid-agent.exe
 ```
 
 From a repo checkout:

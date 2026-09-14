@@ -131,15 +131,20 @@ Copy `ca.crt` to the agent host (scp, USB, shared folder, etc.).
 
 ### B) Linux agent (recommended)
 
-On the agent machine (with `ca.crt` present, e.g. `/tmp/ca.crt`):
+Run these commands **on the Linux agent host** (Kali, Ubuntu, etc.) — not in Windows Git Bash.
+
+With `ca.crt` present (e.g. `/tmp/ca.crt` or `/etc/pulsegrid/ca.crt`):
 
 ```bash
+sudo mkdir -p /etc/pulsegrid
+sudo cp /path/to/ca.crt /etc/pulsegrid/ca.crt
+
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-agent.sh \
   | sudo bash -s -- \
       --server-id kali-01 \
       --monitor 192.168.0.230:50051 \
       --token pg_join_REPLACE_ME \
-      --ca /tmp/ca.crt \
+      --ca /etc/pulsegrid/ca.crt \
       --version v2.3.3
 ```
 
@@ -156,27 +161,64 @@ Host should show **ONLINE** in the dashboard within a few seconds.
 
 ### C) Windows agent
 
-1. Download `pulsegrid-agent-windows-amd64.exe` from  
-   https://github.com/SokmeanKao/Pulsegrid/releases (tag **v2.3.3** or latest agent release).
-2. Copy Monitor `ca.crt` next to the exe (or any path).
-3. Run (PowerShell):
+**Do not** use `install-agent.sh` or `sudo` on Windows. That script is Linux-only.  
+Windows Git Bash is **not** PowerShell — paste the matching block below into the matching shell.
 
-```powershell
-$env:SERVER_ID = "win-01"
-$env:MONITOR_ADDRESS = "192.168.0.230:50051"
-$env:JOIN_TOKEN = "pg_join_REPLACE_ME"
-$env:MONITOR_CA_FILE = "C:\path\to\ca.crt"
-.\pulsegrid-agent-windows-amd64.exe
+**1. On the Monitor host**, export the CA (Git Bash or PowerShell):
+
+```bash
+cd /e/M-Cross-Lab/pulsegrid-monitor   # your install dir
+docker compose cp monitor:/certs/ca.crt ./ca.crt
 ```
 
-From a full repo checkout you can also use:
+**2. Install + run the agent**
+
+#### Git Bash (MINGW64)
+
+```bash
+mkdir -p /c/pulsegrid
+cp /e/M-Cross-Lab/pulsegrid-monitor/ca.crt /c/pulsegrid/ca.crt
+
+curl -fL "https://github.com/SokmeanKao/Pulsegrid/releases/download/v2.3.3/pulsegrid-agent-windows-amd64.exe" \
+  -o /c/pulsegrid/pulsegrid-agent.exe
+
+export SERVER_ID=window-01
+export MONITOR_ADDRESS=192.168.0.230:50051
+export JOIN_TOKEN='pg_join_REPLACE_ME'
+export MONITOR_CA_FILE=/c/pulsegrid/ca.crt
+
+/c/pulsegrid/pulsegrid-agent.exe
+```
+
+If the download 404s, open [Releases](https://github.com/SokmeanKao/Pulsegrid/releases) and save `pulsegrid-agent-windows-amd64.exe` as `C:\pulsegrid\pulsegrid-agent.exe` manually.
+
+#### PowerShell (Windows PowerShell / Terminal — not Git Bash)
 
 ```powershell
-.\scripts\run-agent.ps1 -ServerId win-01 `
+New-Item -ItemType Directory -Force -Path C:\pulsegrid | Out-Null
+Copy-Item E:\M-Cross-Lab\pulsegrid-monitor\ca.crt C:\pulsegrid\ca.crt -Force
+
+Invoke-WebRequest `
+  -Uri "https://github.com/SokmeanKao/Pulsegrid/releases/download/v2.3.3/pulsegrid-agent-windows-amd64.exe" `
+  -OutFile C:\pulsegrid\pulsegrid-agent.exe
+
+$env:SERVER_ID = "window-01"
+$env:MONITOR_ADDRESS = "192.168.0.230:50051"
+$env:JOIN_TOKEN = "pg_join_REPLACE_ME"
+$env:MONITOR_CA_FILE = "C:\pulsegrid\ca.crt"
+C:\pulsegrid\pulsegrid-agent.exe
+```
+
+From a full repo checkout:
+
+```powershell
+.\scripts\run-agent.ps1 -ServerId window-01 `
   -Monitor 192.168.0.230:50051 `
   -Token pg_join_REPLACE_ME `
   -CaFile .\ca.crt
 ```
+
+Leave the terminal open while the agent runs. It should appear **ONLINE** on the dashboard within a few seconds.
 
 ### D) Agent container (optional)
 
