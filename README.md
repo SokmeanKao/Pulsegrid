@@ -6,6 +6,11 @@ Live fleet metrics: **agents dial Monitor** over TLS gRPC → Spring Boot + Time
 
 ![Pulsegrid terminal dashboard](docs/images/dashboard-terminal.png)
 
+## What's new in v2.2.1
+
+- **nginx edge** — UI + API + WebSocket on one HTTP port (`80`); agents still use `:50051`
+- Fixes host port clashes (e.g. `:3000` already allocated)
+
 ## What's new in v2.2.0
 
 - **No-clone Monitor install** — pull `pulsegrid-backend` + `pulsegrid-dashboard` from GHCR
@@ -47,7 +52,7 @@ Agent (outbound TLS) ──► Monitor Gateway :50051 ──► Timescale + WebS
 
 ## Install Monitor
 
-**No clone (recommended)** — pull published images only:
+**No clone (recommended)** — nginx on port **80** + Agent Gateway **50051**:
 
 **Windows** (Docker Desktop; no sudo):
 
@@ -63,14 +68,16 @@ curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/i
   | bash -s -- --public-host YOUR_LAN_IP
 ```
 
-**Raw compose only:**
+**Raw files:**
 
 ```text
 https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
+https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/nginx/default.conf
 ```
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/nginx/default.conf -o nginx.conf
 ```
 
 **From source** (clone + build): full walkthrough in **[docs/INSTALL.md](docs/INSTALL.md)**.
@@ -90,8 +97,8 @@ Opens:
 
 | URL | Purpose |
 |---|---|
-| `http://YOUR_LAN_IP:3000/terminal` | Dashboard |
-| `http://YOUR_LAN_IP:8080/healthz` | Health |
+| `http://YOUR_LAN_IP/terminal` | Dashboard (nginx :80) |
+| `http://YOUR_LAN_IP/healthz` | Health |
 | `YOUR_LAN_IP:50051` | Agent Gateway (TLS) |
 
 Then use **+ Add Agent** in the UI.

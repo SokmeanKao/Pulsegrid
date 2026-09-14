@@ -37,13 +37,16 @@ Repo: https://github.com/SokmeanKao/Pulsegrid
 
 ## Quick start (no clone — recommended)
 
-Pulls `ghcr.io/sokmeankao/pulsegrid-backend` + `pulsegrid-dashboard` (+ Timescale). No git clone.
+Pulls backend + dashboard from GHCR, Timescale, and **nginx** on one HTTP port. No git clone.
+
+**Host ports:** `80` (UI + API + WebSocket) and `50051` (Agent Gateway TLS).
 
 ### Windows
 
 ```powershell
 irm https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.ps1 -OutFile $env:TEMP\pg-mon.ps1
 powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost 192.168.0.230
+# If port 80 is busy: add -HttpPort 8080
 ```
 
 Installs to `%USERPROFILE%\pulsegrid-monitor` by default.
@@ -53,42 +56,26 @@ Installs to `%USERPROFILE%\pulsegrid-monitor` by default.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
   | bash -s -- --public-host 192.168.0.230
+# If port 80 is busy: add --http-port 8080
 ```
 
 No `sudo` required if your user can run Docker. Default install dir: `~/pulsegrid-monitor`.
 
-Pin a release: `--version v2.2.0` / `-Version v2.2.0`.
+Pin a release: `--version v2.2.1` / `-Version v2.2.1`.
 
-### Raw compose file
+### Raw files
 
 ```text
 https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
-```
-
-Manual pull (certs + `.env` still required — prefer the installer above):
-
-```bash
-mkdir -p ~/pulsegrid-monitor && cd ~/pulsegrid-monitor
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml \
-  -o docker-compose.yml
-# then generate certs/ and .env — see “Manual compose” below, or re-run install-monitor-images
-docker compose pull && docker compose up -d
-```
-
-```powershell
-New-Item -ItemType Directory -Force -Path "$HOME\pulsegrid-monitor" | Out-Null
-cd $HOME\pulsegrid-monitor
-Invoke-WebRequest -UseBasicParsing `
-  -Uri https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml `
-  -OutFile docker-compose.yml
+https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/nginx/default.conf
 ```
 
 ### Open the UI
 
 | URL | Purpose |
 |---|---|
-| `http://MONITOR_IP:3000/terminal` | Terminal dashboard |
-| `http://MONITOR_IP:8080/healthz` | Backend health |
+| `http://MONITOR_IP/terminal` | Terminal dashboard (port 80) |
+| `http://MONITOR_IP/healthz` | Backend health |
 | Agent Gateway | `MONITOR_IP:50051` (TLS) |
 
 CA cert: `~/pulsegrid-monitor/certs/ca.crt` (or `%USERPROFILE%\pulsegrid-monitor\certs\ca.crt`).

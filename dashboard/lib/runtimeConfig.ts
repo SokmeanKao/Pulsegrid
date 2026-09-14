@@ -6,11 +6,27 @@ export type PulsegridRuntimeConfig = {
   backendPort: string;
 };
 
-function deriveFromWindow(backendPort: string): PulsegridRuntimeConfig {
+function sameOriginFromWindow(): PulsegridRuntimeConfig {
   if (typeof window === "undefined") {
     return {
-      apiUrl: "http://localhost:8080",
-      wsUrl: "ws://localhost:8080/ws/metrics",
+      apiUrl: "http://localhost",
+      wsUrl: "ws://localhost/ws/metrics",
+      backendPort: "80",
+    };
+  }
+  const wsProto = window.location.protocol === "https:" ? "wss" : "ws";
+  return {
+    apiUrl: window.location.origin,
+    wsUrl: `${wsProto}://${window.location.host}/ws/metrics`,
+    backendPort: window.location.port || (window.location.protocol === "https:" ? "443" : "80"),
+  };
+}
+
+function splitPortsFromWindow(backendPort: string): PulsegridRuntimeConfig {
+  if (typeof window === "undefined") {
+    return {
+      apiUrl: `http://localhost:${backendPort}`,
+      wsUrl: `ws://localhost:${backendPort}/ws/metrics`,
       backendPort,
     };
   }
@@ -23,40 +39,48 @@ function deriveFromWindow(backendPort: string): PulsegridRuntimeConfig {
   };
 }
 
-/** Resolve API/WS URLs: runtime env → NEXT_PUBLIC → browser host. */
+/** Resolve API/WS URLs: runtime env → NEXT_PUBLIC → same-origin or host:port. */
 export async function loadPulsegridConfig(): Promise<PulsegridRuntimeConfig> {
-  let backendPort = "8080";
+  let sameOrigin = true;
+  let backendPort = "";
   let apiUrl = "";
   let wsUrl = "";
 
   try {
-    const res = await fetch("/api/pulsegrid-config", { cache: "no-store" });
+    const res = await fetch("/pulsegrid-config", { cache: "no-store" });
     if (res.ok) {
       const j = (await res.json()) as {
+        sameOrigin?: boolean;
         apiUrl?: string;
         wsUrl?: string;
         backendPort?: string;
       };
+      if (typeof j.sameOrigin === "boolean") sameOrigin = j.sameOrigin;
       apiUrl = (j.apiUrl ?? "").trim();
       wsUrl = (j.wsUrl ?? "").trim();
-      if (j.backendPort) backendPort = String(j.backendPort).trim() || "8080";
+      backendPort = (j.backendPort ?? "").trim();
     }
   } catch {
-    /* ignore — fall through to env / derive */
+    /* ignore */
   }
 
-  if (!apiUrl) {
-    apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
-  }
-  if (!wsUrl) {
-    wsUrl = process.env.NEXT_PUBLIC_WS_URL?.trim() || "";
+  if (!apiUrl) apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
+  if (!wsUrl) wsUrl = process.env.NEXT_PUBLIC_WS_URL?.trim() || "";
+
+  // Explicit URLs win; else same-origin (nginx); else split ports.
+  if (apiUrl && wsUrl) {
+    return { apiUrl, wsUrl, backendPort: backendPort || "8080" };
   }
 
-  const derived = deriveFromWindow(backendPort);
+  const derived =
+    sameOrigin || !backendPort
+      ? sameOriginFromWindow()
+      : splitPortsFromWindow(backendPort);
+
   return {
     apiUrl: apiUrl || derived.apiUrl,
     wsUrl: wsUrl || derived.wsUrl,
-    backendPort,
+    backendPort: backendPort || derived.backendPort,
   };
 }
 
