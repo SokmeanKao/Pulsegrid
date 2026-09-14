@@ -3,14 +3,8 @@
 import { useState } from "react";
 import { Copy, Plus, X } from "lucide-react";
 import { iconMd, iconStroke } from "@/lib/dashboard/icons";
+import { loadPulsegridConfig } from "@/lib/runtimeConfig";
 import { cn } from "@/lib/utils";
-
-function apiBase(): string {
-  return (
-    process.env.NEXT_PUBLIC_API_URL?.trim() ||
-    "http://localhost:8080"
-  );
-}
 
 type Props = {
   open: boolean;
@@ -35,7 +29,8 @@ export function AddAgentModal({ open, onClose }: Props) {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch(`${apiBase()}/api/agents/enroll`, {
+      const { apiUrl } = await loadPulsegridConfig();
+      const res = await fetch(`${apiUrl}/api/agents/enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ serverId: serverId.trim() }),
@@ -50,7 +45,7 @@ export function AddAgentModal({ open, onClose }: Props) {
       };
       setResult({
         ...data,
-        caUrl: `${apiBase()}/api/agents/ca.crt`,
+        caUrl: `${apiUrl}/api/agents/ca.crt`,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Enroll failed");

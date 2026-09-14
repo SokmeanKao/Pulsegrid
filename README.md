@@ -6,6 +6,12 @@ Live fleet metrics: **agents dial Monitor** over TLS gRPC → Spring Boot + Time
 
 ![Pulsegrid terminal dashboard](docs/images/dashboard-terminal.png)
 
+## What's new in v2.2.0
+
+- **No-clone Monitor install** — pull `pulsegrid-backend` + `pulsegrid-dashboard` from GHCR
+- Dashboard runtime config (works for any `--public-host` without rebuild)
+- `docker-compose.monitor.yml` + `install-monitor-images.sh` / `.ps1`
+
 ## What's new in v2.1.0
 
 - **Docker** widget — engine status, counts, top containers by CPU/mem
@@ -41,18 +47,33 @@ Agent (outbound TLS) ──► Monitor Gateway :50051 ──► Timescale + WebS
 
 ## Install Monitor
 
-Full walkthrough: **[docs/INSTALL.md](docs/INSTALL.md)**.
+**No clone (recommended)** — pull published images only:
+
+**Windows** (Docker Desktop; no sudo):
+
+```powershell
+irm https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.ps1 -OutFile $env:TEMP\pg-mon.ps1
+powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost YOUR_LAN_IP
+```
+
+**Linux / WSL:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
+  | bash -s -- --public-host YOUR_LAN_IP
+```
+
+**From source** (clone + build): full walkthrough in **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
   | sudo bash -s -- --public-host YOUR_LAN_IP
 ```
 
-Windows (repo cloned, Docker Desktop):
+Windows (repo cloned):
 
 ```powershell
 .\scripts\install-monitor.ps1 -PublicHost localhost
-# or: -PublicHost 192.168.150.10
 ```
 
 Opens:

@@ -16,6 +16,7 @@ import {
   type ConnectionStatus,
   type MetricsPoint,
 } from "./types";
+import { loadPulsegridConfig } from "./runtimeConfig";
 
 type Buffers = Map<string, MetricsPoint[]>;
 
@@ -27,13 +28,6 @@ type MetricsContextValue = {
 };
 
 const MetricsContext = createContext<MetricsContextValue | null>(null);
-
-function wsUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_WS_URL?.trim() ||
-    "ws://localhost:8080/ws/metrics"
-  );
-}
 
 export function MetricsProvider({ children }: { children: ReactNode }) {
   const buffersRef = useRef<Buffers>(new Map());
@@ -49,6 +43,7 @@ export function MetricsProvider({ children }: { children: ReactNode }) {
     let socket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
+    let resolvedWs = "";
 
     const bumpServers = (serverId: string) => {
       setServerIds((prev) =>
@@ -57,9 +52,9 @@ export function MetricsProvider({ children }: { children: ReactNode }) {
     };
 
     const connect = () => {
-      if (disposed) return;
+      if (disposed || !resolvedWs) return;
       setStatus(attempt === 0 ? "disconnected" : "reconnecting");
-      socket = new WebSocket(wsUrl());
+      socket = new WebSocket(resolvedWs);
 
       socket.onopen = () => {
         if (disposed) return;
@@ -98,7 +93,11 @@ export function MetricsProvider({ children }: { children: ReactNode }) {
       };
     };
 
-    connect();
+    void loadPulsegridConfig().then((cfg) => {
+      if (disposed) return;
+      resolvedWs = cfg.wsUrl;
+      connect();
+    });
 
     return () => {
       disposed = true;

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Pulsegrid Monitor one-line installer (Linux / WSL).
-# Installs DB + backend + dashboard via Docker Compose.
-# Agents dial the Monitor Agent Gateway (TLS :50051).
+# Pulsegrid Monitor one-line installer (Linux / WSL) — CLONE + BUILD.
+# Prefer no-clone image install on most hosts:
+#   curl -fsSL .../scripts/install-monitor-images.sh | bash -s -- --public-host IP
 #
-# Usage:
+# Usage (this script):
 #   curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
 #     | sudo bash -s -- --public-host 192.168.150.10
 set -euo pipefail

@@ -1,0 +1,63 @@
+# Pulsegrid Monitor — pull-only (no source build).
+# Images: ghcr.io/sokmeankao/pulsegrid-backend|dashboard
+#
+#   docker compose -f docker-compose.monitor.yml pull
+#   docker compose -f docker-compose.monitor.yml up -d
+#
+# Prefer scripts/install-monitor-images.sh|.ps1 (downloads this file + certs).
+
+name: pulsegrid-monitor
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_DB: pulsegrid
+      POSTGRES_USER: pulsegrid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulsegrid}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pulsegrid-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulsegrid -d pulsegrid"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/${PULSEGRID_IMAGE_OWNER:-sokmeankao}/pulsegrid-backend:${PULSEGRID_VERSION:-latest}
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/pulsegrid
+      DATABASE_USER: pulsegrid
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-pulsegrid}
+      GATEWAY_PORT: "50051"
+      GATEWAY_TLS_CERT: /certs/server.crt
+      GATEWAY_TLS_KEY: /certs/server.key
+      GATEWAY_CA_CERT: /certs/ca.crt
+      GATEWAY_ADVERTISE_HOST: ${GATEWAY_ADVERTISE_HOST:-localhost}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+      - "${GATEWAY_PORT:-50051}:50051"
+    volumes:
+      - ./certs:/certs:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dashboard:
+    image: ghcr.io/${PULSEGRID_IMAGE_OWNER:-sokmeankao}/pulsegrid-dashboard:${PULSEGRID_VERSION:-latest}
+    environment:
+      PULSEGRID_BACKEND_PORT: ${BACKEND_PORT:-8080}
+      PULSEGRID_API_URL: ${PULSEGRID_API_URL:-}
+      PULSEGRID_WS_URL: ${PULSEGRID_WS_URL:-}
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pulsegrid-db:

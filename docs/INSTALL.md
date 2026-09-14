@@ -1,4 +1,4 @@
-# Pulsegrid — Installation Guide (v2.0)
+# Pulsegrid — Installation Guide (v2.2)
 
 This guide installs Pulsegrid in two parts:
 
@@ -25,6 +25,7 @@ Repo: https://github.com/SokmeanKao/Pulsegrid
 
 - Docker Engine + Docker Compose v2
 - Open ports: **3000** (UI), **8080** (API/WS), **50051** (Agent Gateway TLS)
+- Image install also needs **openssl** (Git for Windows includes it)
 
 ### Agent host
 
@@ -34,27 +35,31 @@ Repo: https://github.com/SokmeanKao/Pulsegrid
 
 ---
 
-## Quick start
+## Quick start (no clone — recommended)
 
-### Step 1 — Install Monitor
+Pulls `ghcr.io/sokmeankao/pulsegrid-backend` + `pulsegrid-dashboard` (+ Timescale). No git clone.
 
-**Linux**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
-  | sudo bash -s -- --public-host MONITOR_IP
-```
-
-**Windows** (repo cloned, Docker Desktop):
+### Windows
 
 ```powershell
-.\scripts\install-monitor.ps1 -PublicHost localhost
-# or: -PublicHost 192.168.150.10
+irm https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.ps1 -OutFile $env:TEMP\pg-mon.ps1
+powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost 192.168.0.230
 ```
 
-This generates `certs/` (LAN CA + server cert) and starts Compose.
+Installs to `%USERPROFILE%\pulsegrid-monitor` by default.
 
-### Step 2 — Open the UI
+### Linux / WSL / Git Bash
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
+  | bash -s -- --public-host 192.168.0.230
+```
+
+No `sudo` required if your user can run Docker. Default install dir: `~/pulsegrid-monitor`.
+
+Pin a release: `--version v2.2.0` / `-Version v2.2.0`.
+
+### Open the UI
 
 | URL | Purpose |
 |---|---|
@@ -62,7 +67,33 @@ This generates `certs/` (LAN CA + server cert) and starts Compose.
 | `http://MONITOR_IP:8080/healthz` | Backend health |
 | Agent Gateway | `MONITOR_IP:50051` (TLS) |
 
-### Step 3 — Add Agent
+CA cert: `~/pulsegrid-monitor/certs/ca.crt` (or `%USERPROFILE%\pulsegrid-monitor\certs\ca.crt`).
+
+---
+
+## Alternate: install from source (clone + build)
+
+Use this for local development or if you need to patch Monitor code.
+
+### Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor.sh \
+  | sudo bash -s -- --public-host MONITOR_IP
+```
+
+### Windows (repo cloned, Docker Desktop)
+
+```powershell
+.\scripts\install-monitor.ps1 -PublicHost localhost
+# or: -PublicHost 192.168.150.10
+```
+
+This clones/builds from `docker-compose.yml` (`build:` for backend + dashboard).
+
+---
+
+## Add Agent
 
 In the UI: **+ Add Agent** → enter `kali-01` → copy install command.
 
@@ -115,50 +146,25 @@ Registered hosts can later reconnect without a new token (TLS + `serverId`).
 
 ## Upgrades
 
-**Monitor:** `git pull` + `docker compose up -d --build` (keep `certs/`)
+**Monitor (images):** re-run `install-monitor-images` with `--version vX.Y.Z`, or:
+
+```bash
+cd ~/pulsegrid-monitor   # or %USERPROFILE%\pulsegrid-monitor
+# edit .env PULSEGRID_VERSION=vX.Y.Z
+docker compose pull && docker compose up -d
+```
+
+**Monitor (source):** `git pull` + `docker compose up -d --build` (keep `certs/`)
 
 **Agent:** re-run `install-agent.sh` with `--version vX.Y.Z` (registered hosts can reconnect without a new token)
 
----
+## Published images
 
-## Uninstall
-
-**Agent**
-
-```bash
-sudo systemctl disable --now pulsegrid-agent
-sudo rm -f /etc/systemd/system/pulsegrid-agent.service /usr/local/bin/pulsegrid-agent
-sudo rm -rf /etc/pulsegrid
-sudo systemctl daemon-reload
-```
-
-**Monitor**
-
-```bash
-cd /opt/pulsegrid
-sudo docker compose down -v
-sudo rm -rf /opt/pulsegrid
-```
-
----
-
-## Troubleshooting
-
-| Symptom | Check |
+| Image | Registry |
 |---|---|
-| UI loads, no hosts | Enroll + install agent? Token valid? CA trusted? |
-| TLS handshake fails | Agent `--ca` matches Monitor `certs/ca.crt`; SAN includes `--public-host` |
-| Rejected INVALID_TOKEN | Generate a fresh token from Add Agent |
-| Gateway won't start | `certs/server.crt` + `server.key` present and mounted |
+| Backend | `ghcr.io/sokmeankao/pulsegrid-backend` |
+| Dashboard | `ghcr.io/sokmeankao/pulsegrid-dashboard` |
+| Agent | `ghcr.io/sokmeankao/pulsegrid-agent` |
+| DB | `timescale/timescaledb:latest-pg16` |
 
----
-
-## Follow-up (v2.1+)
-
-After registration, Pulsegrid can issue **agent client certificates** and require **mTLS**. v2.0 uses TLS + join tokens for bootstrap; registered hosts reconnect with TLS + `serverId`.
-
-## Related
-
-- Design: `docs/superpowers/specs/2026-09-14-pulsegrid-agent-initiated-gateway-design.md`
-- Plan: `docs/superpowers/plans/2026-09-14-pulsegrid-agent-initiated-gateway.md`
-- Releases: https://github.com/SokmeanKao/Pulsegrid/releases
+Compose file for pull-only: [`docker-compose.monitor.yml`](../docker-compose.monitor.yml)

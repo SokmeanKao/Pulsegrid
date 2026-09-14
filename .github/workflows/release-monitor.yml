@@ -1,0 +1,68 @@
+name: Release pulsegrid-monitor
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Lowercase image owner
+        id: image
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          OWNER_LC="$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          echo "owner=${OWNER_LC}" >> "$GITHUB_OUTPUT"
+          echo "backend=${{ env.REGISTRY }}/${OWNER_LC}/pulsegrid-backend" >> "$GITHUB_OUTPUT"
+          echo "dashboard=${{ env.REGISTRY }}/${OWNER_LC}/pulsegrid-dashboard" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ steps.image.outputs.backend }}:${{ steps.ver.outputs.tag }}
+            ${{ steps.image.outputs.backend }}:latest
+
+      - name: Build and push dashboard
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dashboard
+          push: true
+          tags: |
+            ${{ steps.image.outputs.dashboard }}:${{ steps.ver.outputs.tag }}
+            ${{ steps.image.outputs.dashboard }}:latest
+          build-args: |
+            NEXT_PUBLIC_WS_URL=
+            NEXT_PUBLIC_API_URL=
