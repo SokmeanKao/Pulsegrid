@@ -60,8 +60,8 @@ function EnrollInner() {
     <div className="min-h-screen bg-[var(--t-bg)] text-[var(--t-text)]">
       <div className="mx-auto max-w-2xl space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="font-mono text-sm text-[var(--t-info)]">Pulsegrid — Enroll agent</h1>
-          <Link href="/terminal" className="font-mono text-[10px] text-[var(--t-muted)] hover:text-[var(--t-info)]">
+          <h1 className="font-mono text-[11px] text-[var(--t-info)]">Pulsegrid — Enroll agent</h1>
+          <Link href="/terminal" className="font-mono text-[9px] text-[var(--t-muted)] hover:text-[var(--t-info)]">
             Dashboard
           </Link>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Copy, Download, Eye, EyeOff } from "lucide-react";
-import { iconMd, iconStroke } from "@/lib/dashboard/icons";
+import { iconSm, iconStroke } from "@/lib/dashboard/icons";
 import type { EnrollmentCommands } from "@/lib/enrollmentCommands";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -72,15 +72,15 @@ export function EnrollmentMaterials(props: EnrollmentMaterialsProps) {
   }
 
   return (
-    <div className="space-y-3 font-mono text-xs text-[var(--t-text)]">
-      <div className="space-y-1 border border-[var(--t-border)] bg-[var(--t-bg)] p-2">
+    <div className="space-y-2 font-mono text-[10px] leading-snug text-[var(--t-text)]">
+      <div className="space-y-0.5 border border-[var(--t-border)] bg-[var(--t-bg)] p-1.5">
         <p>
           <span className="text-[var(--t-muted)]">Server id:</span> {props.serverId}
         </p>
         <p>
           <span className="text-[var(--t-muted)]">Gateway:</span> {props.monitorAddress}
         </p>
-        <p className="flex flex-wrap items-center gap-2">
+        <p className="flex flex-wrap items-center gap-1.5">
           <span className="text-[var(--t-muted)]">Token:</span>
           <span className="break-all">{reveal ? props.token : masked}</span>
           <button
@@ -90,9 +90,9 @@ export function EnrollmentMaterials(props: EnrollmentMaterialsProps) {
             aria-label={reveal ? "Hide token" : "Reveal token"}
           >
             {reveal ? (
-              <EyeOff className={iconMd} strokeWidth={iconStroke} />
+              <EyeOff className={iconSm} strokeWidth={iconStroke} />
             ) : (
-              <Eye className={iconMd} strokeWidth={iconStroke} />
+              <Eye className={iconSm} strokeWidth={iconStroke} />
             )}
           </button>
           <button
@@ -100,54 +100,54 @@ export function EnrollmentMaterials(props: EnrollmentMaterialsProps) {
             className="inline-flex items-center gap-1 text-[var(--t-muted)] hover:text-[var(--t-info)]"
             onClick={() => void copy(props.token)}
           >
-            <Copy className={iconMd} strokeWidth={iconStroke} />
+            <Copy className={iconSm} strokeWidth={iconStroke} />
             Copy
           </button>
         </p>
         {props.expiresAt ? (
-          <p className="text-[10px] text-[var(--t-muted)]">Expires: {props.expiresAt}</p>
+          <p className="text-[9px] text-[var(--t-muted)]">Expires: {props.expiresAt}</p>
         ) : null}
-        <p className="text-[10px] text-[var(--t-warning)]">
+        <p className="text-[9px] text-[var(--t-warning)]">
           Treat the join token like a password — valid ~24h, single-use enroll.
         </p>
       </div>
 
       <a
-        className="inline-flex items-center gap-1 border border-[var(--t-border)] px-2 py-1 hover:text-[var(--t-info)]"
+        className="inline-flex items-center gap-1 border border-[var(--t-border)] px-1.5 py-0.5 text-[10px] hover:text-[var(--t-info)]"
         href={props.caUrl}
         target="_blank"
         rel="noreferrer"
       >
-        <Download className={iconMd} strokeWidth={iconStroke} />
+        <Download className={iconSm} strokeWidth={iconStroke} />
         Download ca.crt
       </a>
 
       <div className="space-y-1">
-        <p className="text-[10px] uppercase tracking-wider text-[var(--t-info)]">Platform</p>
+        <p className="text-[9px] uppercase tracking-wider text-[var(--t-info)]">Platform</p>
         <Tabs defaultValue="linux">
-          <TabsList>
+          <TabsList className="h-auto min-h-6 gap-0.5 p-0.5">
             {TABS.map((t) => (
-              <TabsTrigger key={t.id} value={t.id}>
+              <TabsTrigger key={t.id} value={t.id} className="px-1.5 py-0.5 text-[9px]">
                 {t.label}
               </TabsTrigger>
             ))}
           </TabsList>
           {TABS.map((t) => (
-            <TabsContent key={t.id} value={t.id} className="space-y-2">
-              <ol className="list-decimal space-y-0.5 pl-4 text-[10px] text-[var(--t-muted)]">
+            <TabsContent key={t.id} value={t.id} className="mt-1.5 space-y-1.5">
+              <ol className="list-decimal space-y-0.5 pl-3.5 text-[9px] text-[var(--t-muted)]">
                 {t.steps.map((s) => (
                   <li key={s}>{s}</li>
                 ))}
               </ol>
-              <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all border border-[var(--t-border)] bg-[var(--t-bg)] p-2">
+              <pre className="max-h-36 overflow-auto whitespace-pre-wrap break-all border border-[var(--t-border)] bg-[var(--t-bg)] p-1.5 text-[9px] leading-snug">
                 {props.commands[t.id]}
               </pre>
               <button
                 type="button"
-                className="inline-flex items-center gap-1 border border-[var(--t-border)] px-2 py-1 hover:text-[var(--t-info)]"
+                className="inline-flex items-center gap-1 border border-[var(--t-border)] px-1.5 py-0.5 text-[10px] hover:text-[var(--t-info)]"
                 onClick={() => void copy(props.commands[t.id])}
               >
-                <Copy className={iconMd} strokeWidth={iconStroke} />
+                <Copy className={iconSm} strokeWidth={iconStroke} />
                 Copy command
               </button>
             </TabsContent>
