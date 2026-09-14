@@ -1,13 +1,11 @@
-# Pulsegrid Monitor — pull-only with nginx edge (single HTTP port).
-# Images: ghcr.io/sokmeankao/pulsegrid-backend|dashboard
+# Pulsegrid Monitor — DB + one unified app image (UI + API + Agent Gateway).
 #
 # Raw URL:
 #   https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
-#   https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/nginx/default.conf
 #
-# Published host ports (defaults):
-#   HTTP_PORT (80)     — UI + API + WebSocket via nginx
-#   GATEWAY_PORT (50051) — Agent Gateway TLS (gRPC; not via nginx)
+# Host ports:
+#   HTTP_PORT (80)       → container :8080 (UI + API + WebSocket)
+#   GATEWAY_PORT (50051) → Agent Gateway TLS
 #
 # Prefer scripts/install-monitor-images.sh|.ps1
 
@@ -29,8 +27,8 @@ services:
       retries: 10
     restart: unless-stopped
 
-  backend:
-    image: ghcr.io/${PULSEGRID_IMAGE_OWNER:-sokmeankao}/pulsegrid-backend:${PULSEGRID_VERSION:-latest}
+  monitor:
+    image: ghcr.io/${PULSEGRID_IMAGE_OWNER:-sokmeankao}/pulsegrid-monitor:${PULSEGRID_VERSION:-latest}
     environment:
       DATABASE_URL: jdbc:postgresql://db:5432/pulsegrid
       DATABASE_USER: pulsegrid
@@ -40,38 +38,16 @@ services:
       GATEWAY_TLS_KEY: /certs/server.key
       GATEWAY_CA_CERT: /certs/ca.crt
       GATEWAY_ADVERTISE_HOST: ${GATEWAY_ADVERTISE_HOST:-localhost}
-    expose:
-      - "8080"
+      PULSEGRID_SAME_ORIGIN: "true"
+      PULSEGRID_UI_DIR: file:/app/ui/
     ports:
+      - "${HTTP_PORT:-80}:8080"
       - "${GATEWAY_PORT:-50051}:50051"
     volumes:
       - ./certs:/certs:ro
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
-
-  dashboard:
-    image: ghcr.io/${PULSEGRID_IMAGE_OWNER:-sokmeankao}/pulsegrid-dashboard:${PULSEGRID_VERSION:-latest}
-    environment:
-      PULSEGRID_SAME_ORIGIN: "1"
-      PULSEGRID_API_URL: ${PULSEGRID_API_URL:-}
-      PULSEGRID_WS_URL: ${PULSEGRID_WS_URL:-}
-    expose:
-      - "3000"
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:1.27-alpine
-    ports:
-      - "${HTTP_PORT:-80}:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - dashboard
-      - backend
     restart: unless-stopped
 
 volumes:

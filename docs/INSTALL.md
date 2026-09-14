@@ -37,7 +37,7 @@ Repo: https://github.com/SokmeanKao/Pulsegrid
 
 ## Quick start (no clone — recommended)
 
-Pulls backend + dashboard from GHCR, Timescale, and **nginx** on one HTTP port. No git clone.
+Pulls **one** Monitor image (`pulsegrid-monitor` = UI + API + Agent Gateway) plus Timescale. No git clone.
 
 **Host ports:** `80` (UI + API + WebSocket) and `50051` (Agent Gateway TLS).
 
@@ -56,29 +56,25 @@ Installs to `%USERPROFILE%\pulsegrid-monitor` by default.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
   | bash -s -- --public-host 192.168.0.230
-# If port 80 is busy: add --http-port 8080
 ```
 
-No `sudo` required if your user can run Docker. Default install dir: `~/pulsegrid-monitor`.
+Pin a release: `--version v2.3.0` / `-Version v2.3.0`.
 
-Pin a release: `--version v2.2.1` / `-Version v2.2.1`.
-
-### Raw files
+### Raw compose
 
 ```text
 https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
-https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/nginx/default.conf
 ```
 
 ### Open the UI
 
 | URL | Purpose |
 |---|---|
-| `http://MONITOR_IP/terminal` | Terminal dashboard (port 80) |
+| `http://MONITOR_IP/terminal/` | Terminal dashboard |
 | `http://MONITOR_IP/healthz` | Backend health |
 | Agent Gateway | `MONITOR_IP:50051` (TLS) |
 
-CA cert: `~/pulsegrid-monitor/certs/ca.crt` (or `%USERPROFILE%\pulsegrid-monitor\certs\ca.crt`).
+Containers: **`db`** + **`monitor`** (UI and backend in the same container).
 
 ---
 
@@ -173,11 +169,8 @@ docker compose pull && docker compose up -d
 
 | Image | Registry |
 |---|---|
-| Backend | `ghcr.io/sokmeankao/pulsegrid-backend` |
-| Dashboard | `ghcr.io/sokmeankao/pulsegrid-dashboard` |
+| **Monitor (UI+API+Gateway)** | `ghcr.io/sokmeankao/pulsegrid-monitor` |
 | Agent | `ghcr.io/sokmeankao/pulsegrid-agent` |
 | DB | `timescale/timescaledb:latest-pg16` |
 
 Compose (raw): https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
-
-Also in-repo: [`docker-compose.monitor.yml`](../docker-compose.monitor.yml)
