@@ -1,13 +1,17 @@
 # Pulsegrid Monitor — DB + one unified app image (UI + API + Agent Gateway).
 #
-# Raw URL:
-#   https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
+# Minimal setup (certs auto-generated on first start):
+#   mkdir pulsegrid-monitor && cd pulsegrid-monitor
+#   curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
+#   curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/monitor/env.example -o .env
+#   # edit GATEWAY_ADVERTISE_HOST=your.ip
+#   docker compose up -d
 #
-# Host ports:
-#   HTTP_PORT (80)       → container :8080 (UI + API + WebSocket)
+# Or one-liner: scripts/install-monitor-images.sh|.ps1
+#
+# Host ports (defaults avoid Windows :80 lock):
+#   HTTP_PORT (8080)     → UI + API + WebSocket
 #   GATEWAY_PORT (50051) → Agent Gateway TLS
-#
-# Prefer scripts/install-monitor-images.sh|.ps1
 
 name: pulsegrid-monitor
 
@@ -37,14 +41,17 @@ services:
       GATEWAY_TLS_CERT: /certs/server.crt
       GATEWAY_TLS_KEY: /certs/server.key
       GATEWAY_CA_CERT: /certs/ca.crt
+      GATEWAY_CERT_DIR: /certs
       GATEWAY_ADVERTISE_HOST: ${GATEWAY_ADVERTISE_HOST:-localhost}
       PULSEGRID_SAME_ORIGIN: "true"
       PULSEGRID_UI_DIR: file:/app/ui/
     ports:
-      - "${HTTP_PORT:-80}:8080"
+      - "${HTTP_PORT:-8080}:8080"
       - "${GATEWAY_PORT:-50051}:50051"
     volumes:
-      - ./certs:/certs:ro
+      # Named volume: entrypoint auto-creates TLS on first boot.
+      # To use host files instead: - ./certs:/certs
+      - pulsegrid-certs:/certs
     depends_on:
       db:
         condition: service_healthy
@@ -52,3 +59,4 @@ services:
 
 volumes:
   pulsegrid-db:
+  pulsegrid-certs:

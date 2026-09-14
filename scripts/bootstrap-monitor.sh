@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# Pulsegrid Monitor — complete no-clone install (compose + .env; TLS auto in container).
-#   curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
+# Complete Monitor bootstrap: compose + .env + up (certs auto inside container).
+#   curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/bootstrap-monitor.sh \
 #     | bash -s -- --public-host 192.168.0.230
 set -euo pipefail
 
 REPO="${GITHUB_REPO:-SokmeanKao/Pulsegrid}"
 BRANCH="${BRANCH:-main}"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
-INSTALL_DIR="${INSTALL_DIR:-${HOME}/pulsegrid-monitor}"
+INSTALL_DIR="${INSTALL_DIR:-${PWD}/pulsegrid-monitor}"
 PUBLIC_HOST="${PUBLIC_HOST:-localhost}"
 HTTP_PORT="${HTTP_PORT:-8080}"
 GATEWAY_PORT="${GATEWAY_PORT:-50051}"
 PULSEGRID_VERSION="${PULSEGRID_VERSION:-latest}"
 PULSEGRID_IMAGE_OWNER="${PULSEGRID_IMAGE_OWNER:-sokmeankao}"
-START=1
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -23,9 +22,8 @@ while [[ $# -gt 0 ]]; do
     --install-dir) INSTALL_DIR="${2:-}"; shift 2 ;;
     --version) PULSEGRID_VERSION="${2:-}"; shift 2 ;;
     --image-owner) PULSEGRID_IMAGE_OWNER="${2:-}"; shift 2 ;;
-    --no-start) START=0; shift ;;
     -h|--help)
-      echo "Usage: --public-host IP [--http-port 8080] [--version v2.3.2]"
+      echo "Usage: bootstrap-monitor.sh --public-host IP [--http-port 8080] [--install-dir DIR]"
       exit 0
       ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -40,10 +38,7 @@ mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
 curl -fsSL "${RAW}/docker-compose.monitor.yml" -o docker-compose.yml
-rm -f nginx.conf
-
 cat >.env <<EOF
-# TLS certs are auto-created inside the monitor container on first start
 GATEWAY_ADVERTISE_HOST=${PUBLIC_HOST}
 HTTP_PORT=${HTTP_PORT}
 GATEWAY_PORT=${GATEWAY_PORT}
@@ -51,13 +46,7 @@ PULSEGRID_VERSION=${PULSEGRID_VERSION}
 PULSEGRID_IMAGE_OWNER=${PULSEGRID_IMAGE_OWNER}
 EOF
 
-echo "→ Wrote ${INSTALL_DIR}/.env"
-
-if [[ "$START" -eq 0 ]]; then
-  echo "→ Skipping start. Run: cd ${INSTALL_DIR} && docker compose pull && docker compose up -d"
-  exit 0
-fi
-
+echo "→ Wrote ${INSTALL_DIR}/docker-compose.yml and .env"
 docker compose pull
 docker compose up -d
 
@@ -66,11 +55,11 @@ HTTP_DISP="${PUBLIC_HOST}:${HTTP_PORT}"
 
 cat <<EOF
 
-✓ Pulsegrid Monitor is up
+✓ Pulsegrid Monitor starting (TLS certs auto-generated in volume)
 
   Dashboard:     http://${HTTP_DISP}/terminal/
   Health:        http://${HTTP_DISP}/healthz
-  Agent Gateway: ${PUBLIC_HOST}:${GATEWAY_PORT} (TLS)
+  Agent Gateway: ${PUBLIC_HOST}:${GATEWAY_PORT}
   Install dir:   ${INSTALL_DIR}
 
 Export CA for agents:

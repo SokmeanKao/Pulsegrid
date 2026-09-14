@@ -17,9 +17,15 @@ RUN chmod +x gradlew && ./gradlew bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 COPY --from=backend /src/build/libs/*.jar /app/app.jar
 COPY --from=ui /ui/out /app/ui
+COPY monitor/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 ENV PULSEGRID_UI_DIR=file:/app/ui/
 ENV PULSEGRID_SAME_ORIGIN=true
+ENV GATEWAY_CERT_DIR=/certs
 EXPOSE 8080 50051
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

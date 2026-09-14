@@ -37,44 +37,37 @@ Repo: https://github.com/SokmeanKao/Pulsegrid
 
 ## Quick start (no clone — recommended)
 
-Pulls **one** Monitor image (`pulsegrid-monitor` = UI + API + Agent Gateway) plus Timescale. No git clone.
+**Need more than compose alone:** `.env` (advertise host + ports). TLS certs are **auto-created** inside the monitor container on first start.
 
-**Host ports:** `80` (UI + API + WebSocket) and `50051` (Agent Gateway TLS).
-
-### Windows
+### Windows (complete installer)
 
 ```powershell
 irm https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.ps1 -OutFile $env:TEMP\pg-mon.ps1
-powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost 192.168.0.230
-# If port 80 is busy: add -HttpPort 8080
+powershell -ExecutionPolicy Bypass -File $env:TEMP\pg-mon.ps1 -PublicHost 192.168.0.230 -Version v2.3.2
 ```
 
-Installs to `%USERPROFILE%\pulsegrid-monitor` by default.
-
-### Linux / WSL / Git Bash
+### Manual (compose + .env)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/install-monitor-images.sh \
-  | bash -s -- --public-host 192.168.0.230
+mkdir -p pulsegrid-monitor && cd pulsegrid-monitor
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/deploy/monitor/env.example -o .env
+# edit GATEWAY_ADVERTISE_HOST=your.ip
+docker compose pull && docker compose up -d
+docker compose cp monitor:/certs/ca.crt ./ca.crt   # for agents
 ```
 
-Pin a release: `--version v2.3.0` / `-Version v2.3.0`.
+Default HTTP port is **8080** (Windows often blocks :80).
 
-### Raw compose
-
-```text
-https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
-```
-
-### Open the UI
+### Open
 
 | URL | Purpose |
 |---|---|
-| `http://MONITOR_IP/terminal/` | Terminal dashboard |
-| `http://MONITOR_IP/healthz` | Backend health |
-| Agent Gateway | `MONITOR_IP:50051` (TLS) |
+| `http://MONITOR_IP:8080/terminal/` | UI |
+| `http://MONITOR_IP:8080/healthz` | Health |
+| `MONITOR_IP:50051` | Agent Gateway |
 
-Containers: **`db`** + **`monitor`** (UI and backend in the same container).
+Containers: **`db`** + **`monitor`**.
 
 ---
 
