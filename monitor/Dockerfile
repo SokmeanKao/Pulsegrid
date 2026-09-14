@@ -2,7 +2,7 @@
 # Unified Pulsegrid Monitor: Spring Boot API/WS/Gateway + static Next.js UI (one container).
 # Build from repo root: docker build -f monitor/Dockerfile -t pulsegrid-monitor .
 
-FROM node:20-bookworm AS ui
+FROM node:22-bookworm AS ui
 WORKDIR /ui
 COPY dashboard/package.json dashboard/package-lock.json ./
 RUN npm ci
