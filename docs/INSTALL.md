@@ -59,6 +59,30 @@ No `sudo` required if your user can run Docker. Default install dir: `~/pulsegri
 
 Pin a release: `--version v2.2.0` / `-Version v2.2.0`.
 
+### Raw compose file
+
+```text
+https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
+```
+
+Manual pull (certs + `.env` still required — prefer the installer above):
+
+```bash
+mkdir -p ~/pulsegrid-monitor && cd ~/pulsegrid-monitor
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml \
+  -o docker-compose.yml
+# then generate certs/ and .env — see “Manual compose” below, or re-run install-monitor-images
+docker compose pull && docker compose up -d
+```
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$HOME\pulsegrid-monitor" | Out-Null
+cd $HOME\pulsegrid-monitor
+Invoke-WebRequest -UseBasicParsing `
+  -Uri https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml `
+  -OutFile docker-compose.yml
+```
+
 ### Open the UI
 
 | URL | Purpose |
@@ -167,4 +191,6 @@ docker compose pull && docker compose up -d
 | Agent | `ghcr.io/sokmeankao/pulsegrid-agent` |
 | DB | `timescale/timescaledb:latest-pg16` |
 
-Compose file for pull-only: [`docker-compose.monitor.yml`](../docker-compose.monitor.yml)
+Compose (raw): https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
+
+Also in-repo: [`docker-compose.monitor.yml`](../docker-compose.monitor.yml)

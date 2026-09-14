@@ -1,10 +1,15 @@
 # Pulsegrid Monitor — pull-only (no source build).
 # Images: ghcr.io/sokmeankao/pulsegrid-backend|dashboard
 #
-#   docker compose -f docker-compose.monitor.yml pull
-#   docker compose -f docker-compose.monitor.yml up -d
+# Raw URL:
+#   https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
 #
-# Prefer scripts/install-monitor-images.sh|.ps1 (downloads this file + certs).
+#   mkdir -p pulsegrid-monitor && cd pulsegrid-monitor
+#   curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
+#   # generate certs/ + .env (see docs/INSTALL.md), then:
+#   docker compose pull && docker compose up -d
+#
+# Or use scripts/install-monitor-images.sh|.ps1 (downloads this file + certs).
 
 name: pulsegrid-monitor
 

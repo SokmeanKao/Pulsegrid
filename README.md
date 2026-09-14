@@ -63,6 +63,16 @@ curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/scripts/i
   | bash -s -- --public-host YOUR_LAN_IP
 ```
 
+**Raw compose only:**
+
+```text
+https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml -o docker-compose.yml
+```
+
 **From source** (clone + build): full walkthrough in **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ```bash
