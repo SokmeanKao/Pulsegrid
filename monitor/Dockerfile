@@ -28,4 +28,5 @@ ENV PULSEGRID_UI_DIR=file:/app/ui/
 ENV PULSEGRID_SAME_ORIGIN=true
 ENV GATEWAY_CERT_DIR=/certs
 EXPOSE 8080 50051
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Invoke via bash so a stray CRLF shebang cannot break startup.
+ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh"]

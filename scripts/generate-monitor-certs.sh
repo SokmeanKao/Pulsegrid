@@ -3,6 +3,10 @@
 # Usage: scripts/generate-monitor-certs.sh --public-host 192.168.150.10 [--force]
 set -euo pipefail
 
+# Git Bash (MSYS) converts /CN=... into a Windows path — disable that.
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL='*'
+
 PUBLIC_HOST="${PUBLIC_HOST:-localhost}"
 OUT_DIR="${OUT_DIR:-}"
 FORCE=0
@@ -57,13 +61,17 @@ else
   SAN="${SAN},DNS:${PUBLIC_HOST}"
 fi
 
+# Avoid process substitution (<(...)) for Git Bash / older bash compatibility.
+EXT_FILE="${OUT_DIR}/san.ext"
+printf "subjectAltName=%s\nextendedKeyUsage=serverAuth\n" "$SAN" >"$EXT_FILE"
+
 openssl x509 -req -in "${OUT_DIR}/server.csr" -CA "${OUT_DIR}/ca.crt" -CAkey "${OUT_DIR}/ca.key" \
   -CAcreateserial -out "${OUT_DIR}/server.crt" -days 825 -sha256 \
-  -extfile <(printf "subjectAltName=%s\nextendedKeyUsage=serverAuth\n" "$SAN")
+  -extfile "$EXT_FILE"
 
-rm -f "${OUT_DIR}/server.csr" "${OUT_DIR}/ca.srl"
-chmod 644 "${OUT_DIR}/ca.crt" "${OUT_DIR}/server.crt"
-chmod 600 "${OUT_DIR}/ca.key" "${OUT_DIR}/server.key"
+rm -f "${OUT_DIR}/server.csr" "${OUT_DIR}/ca.srl" "$EXT_FILE"
+chmod 644 "${OUT_DIR}/ca.crt" "${OUT_DIR}/server.crt" 2>/dev/null || true
+chmod 600 "${OUT_DIR}/ca.key" "${OUT_DIR}/server.key" 2>/dev/null || true
 
 FP="$(openssl x509 -in "${OUT_DIR}/ca.crt" -noout -fingerprint -sha256 | cut -d= -f2)"
 echo "✓ Wrote ${OUT_DIR}/{ca.crt,ca.key,server.crt,server.key}"

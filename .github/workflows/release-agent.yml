@@ -115,3 +115,18 @@ jobs:
             ${{ steps.image.outputs.name }}:latest
           build-args: |
             VERSION=${{ steps.ver.outputs.version }}
+
+      - name: Make package public (anonymous pull)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          PKG="${{ env.IMAGE_NAME }}"
+          if gh api "users/${OWNER}" --jq .type | grep -qi Organization; then
+            ENDPOINT="orgs/${OWNER}/packages/container/${PKG}"
+          else
+            ENDPOINT="user/packages/container/${PKG}"
+          fi
+          gh api --method PATCH "$ENDPOINT" -f visibility=public \
+            || echo "::warning::Could not set package public. Packages → ${PKG} → Change visibility → Public"

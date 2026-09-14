@@ -9,6 +9,9 @@
 #
 # Or one-liner: scripts/install-monitor-images.sh|.ps1
 #
+# If pull says "not found": make ghcr.io/.../pulsegrid-monitor Public
+# (GitHub → Packages → package settings), or docker login ghcr.io.
+#
 # Host ports (defaults avoid Windows :80 lock):
 #   HTTP_PORT (8080)     → UI + API + WebSocket
 #   GATEWAY_PORT (50051) → Agent Gateway TLS

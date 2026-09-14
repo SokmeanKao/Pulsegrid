@@ -1,2 +1,3 @@
-# Force shell installers to LF so curl|bash works on Linux
+# Force shell installers / entrypoints to LF so Linux + curl|bash work
 *.sh text eol=lf
+monitor/docker-entrypoint.sh text eol=lf

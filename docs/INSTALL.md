@@ -167,3 +167,9 @@ docker compose pull && docker compose up -d
 | DB | `timescale/timescaledb:latest-pg16` |
 
 Compose (raw): https://raw.githubusercontent.com/SokmeanKao/Pulsegrid/main/docker-compose.monitor.yml
+
+**If `docker compose pull` says the tag is “not found”:** GHCR packages are private by default. Either:
+
+1. Make the package public: GitHub → Packages → `pulsegrid-monitor` → Package settings → Change visibility → Public  
+   (same for `pulsegrid-agent` if you pull that image), or  
+2. Authenticate: `echo YOUR_PAT | docker login ghcr.io -u YOUR_GITHUB_USER --password-stdin` (`read:packages` scope).

@@ -54,3 +54,20 @@ jobs:
           tags: |
             ${{ steps.image.outputs.monitor }}:${{ steps.ver.outputs.tag }}
             ${{ steps.image.outputs.monitor }}:latest
+
+      # GHCR packages default to private; anonymous docker pull then looks like "not found".
+      - name: Make package public (anonymous pull)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          PKG="pulsegrid-monitor"
+          # User-owned packages use /user/... ; org-owned use /orgs/{org}/...
+          if gh api "users/${OWNER}" --jq .type | grep -qi Organization; then
+            ENDPOINT="orgs/${OWNER}/packages/container/${PKG}"
+          else
+            ENDPOINT="user/packages/container/${PKG}"
+          fi
+          gh api --method PATCH "$ENDPOINT" -f visibility=public \
+            || echo "::warning::Could not set package public. In GitHub: Packages → pulsegrid-monitor → Package settings → Change visibility → Public"
